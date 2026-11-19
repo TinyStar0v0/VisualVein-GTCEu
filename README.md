@@ -92,32 +92,6 @@ ore count.
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
 hidden by default.
 
-## Building
-
-ForgeGradle 6, Gradle 8.1.1, JDK 17:
-
-```bash
-# Windows
-set JAVA_HOME=C:\Program Files\Java\jdk-17
-gradlew.bat build
-```
-
-The output is `build/libs/visualprospecting-1.4.0.jar`.
-
-`libs/` is not committed (compile-only GTCEu/JourneyMap jars are gitignored). To build from a clone,
-place the matching `gtceu-1.20.1-*.jar`, JourneyMap 5.x jar, and JourneyMap API 2.x jar in `libs/`.
-
-## Implementation
-
-- `VeinScanner`: queues chunks on load, queries `OreGenerator#generateMetadata`, stores by
-  "origin chunk + layer". Automatic scans never mark a vein.
-- `VeinGroup`: groups layers at one origin; surface picks stone, underground picks by observed Y.
-- `VeinWorldData`: `SavedData` persistence for marks, depletion state, surface ores and positions.
-- `VeinInteractionHandler`: surface rock / complete ore / prospector marking, plus chat feedback.
-- `VPJourneyMapPluginV2`: JourneyMap 6.x overlays, right-click status menu, VP panel.
-  `VPJourneyMapPlugin` keeps basic JourneyMap 5.x support.
-- `VPFluidOverlayV2`: fluid vein layer; yields to marked mineral veins in the same region.
-
 ## Limitations
 
 - Ore weight percentages are relative GTCEu weights, not exact block counts; `mined` is approximate.
