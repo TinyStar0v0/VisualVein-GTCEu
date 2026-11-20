@@ -23,6 +23,6 @@ public class VisualProspecting {
             ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, VPConfig.CLIENT_SPEC);
         }
         VPNetwork.register();
-        LOGGER.info("Visual Prospecting: GTCEu initialised");
+        LOGGER.info("VisualVein: GTCEu (Beta b0.01) initialised");
     }
 }
