@@ -75,7 +75,7 @@ tasks.named('processResources', ProcessResources).configure {
             loader_version_range   : '[47,)',
             mod_id                 : mod_id,
             mod_name               : mod_name,
-            mod_license            : 'MIT',
+            mod_license            : 'LGPL-3.0-only',
             mod_version            : mod_version,
             mod_authors            : mod_authors,
             mod_description        : mod_description,
@@ -89,6 +89,12 @@ tasks.named('processResources', ProcessResources).configure {
 }
 
 tasks.named('jar', Jar).configure {
+    from('LICENSE') {
+        into 'META-INF'
+    }
+    from('THIRD_PARTY_NOTICES.md') {
+        into 'META-INF'
+    }
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,

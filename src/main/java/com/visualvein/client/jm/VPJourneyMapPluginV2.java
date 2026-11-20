@@ -507,7 +507,9 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     if (!AVAILABLE_ORE_ICONS.contains(iconSet)) {
                         iconSet = "dull";
                     }
-                    return new ResourceLocation(VisualVein.MODID, "textures/oresets/" + iconSet + ".png");
+                    // Loaded from the installed GTCEu jar at runtime; no third-party texture
+                    // is redistributed inside VisualVein.
+                    return new ResourceLocation("gtceu", "textures/block/material_sets/" + iconSet + "/ore.png");
                 } catch (Throwable ignored) {
                     // Fall through to the generic ore icon.
                 }
@@ -611,24 +613,24 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             for (com.visualvein.data.OreEntry ore : record.ores) {
                 String id = ore.id.toLowerCase();
                 if (id.contains("deepslate")) {
-                    return new ResourceLocation(VisualVein.MODID, "textures/bases/deepslate.png");
+                    return new ResourceLocation("minecraft", "textures/block/deepslate.png");
                 }
                 if (id.contains("netherrack")) {
-                    return new ResourceLocation(VisualVein.MODID, "textures/bases/netherrack.png");
+                    return new ResourceLocation("minecraft", "textures/block/netherrack.png");
                 }
                 if (id.contains("end_stone") || id.contains("endstone")) {
-                    return new ResourceLocation(VisualVein.MODID, "textures/bases/end_stone.png");
+                    return new ResourceLocation("minecraft", "textures/block/end_stone.png");
                 }
             }
             String path = dimension.getPath();
             if (path.contains("nether")) {
-                return new ResourceLocation(VisualVein.MODID, "textures/bases/netherrack.png");
+                return new ResourceLocation("minecraft", "textures/block/netherrack.png");
             }
             if (path.contains("end")) {
-                return new ResourceLocation(VisualVein.MODID, "textures/bases/end_stone.png");
+                return new ResourceLocation("minecraft", "textures/block/end_stone.png");
             }
             // Overworld stone, and the default for modded planets/dimensions.
-            return new ResourceLocation(VisualVein.MODID, "textures/bases/stone.png");
+            return new ResourceLocation("minecraft", "textures/block/stone.png");
         }
 
         private static int tintFor(VeinRecord record) {

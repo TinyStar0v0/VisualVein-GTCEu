@@ -6,12 +6,13 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **v1.00-hotfix-01** — texture-mode depleted veins now get a red cross on the map; otherwise this is
-> the v1.00 stable feature set (host-rock ore textures, immediate minimap updates, reversible depletion
-> state, and fluid fields that switch from one region polygon to per-chunk 8×8 yields at close zoom).
+> **v1.00-hotfix-02** — VisualVein is now licensed under **LGPL-3.0-only**. GTCEu and Minecraft textures
+> are loaded from the installed mods at runtime and are no longer bundled. Functionally this keeps the
+> v1.00 feature set, including the red cross on depleted texture markers.
 
 - **Mod ID**: `visualvein`
-- **Version**: `1.0.1` (release name 1.00-hotfix-01)
+- **Version**: `1.0.2` (release name 1.00-hotfix-02)
+- **License**: LGPL-3.0-only
 - **Status**: Stable hotfix
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
@@ -107,7 +108,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-1.0.1.jar` into **both client and server** `mods/`.
+3. Put `visualvein-1.0.2.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
@@ -124,5 +125,9 @@ hidden by default.
 
 ## License
 
-MIT. GTCEu and JourneyMap jars under `libs/` are only used for local compilation and remain under
-their respective licenses.
+VisualVein code is licensed under **LGPL-3.0-only**. See [LICENSE](LICENSE) for the full text and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party attribution.
+
+VisualVein is an independent project, not a fork of VisualProspecting, GTCEu, or JourneyMap. GTCEu ore
+textures and Minecraft host-rock textures are read from the installed game at runtime; they are not
+bundled in the VisualVein jar. GTCEu and JourneyMap jars under `libs/` are compile-only.

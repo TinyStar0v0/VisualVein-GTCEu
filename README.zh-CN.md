@@ -5,11 +5,12 @@
 一个面向 **Minecraft 1.20.1 / Forge** 的 **GregTech CEu Modern（GTCEu）** 矿脉辅助模组。
 它把 GTCEu 世界生成中的矿脉信息记录下来，并显示在 **JourneyMap（旅行地图）** 的全屏地图和小地图上。
 
-> **v1.00-hotfix-01** —— 贴图模式下枯竭矿脉现在会在地图上显示红色叉号；其余功能与 v1.00 正式版一致
-> （矿石贴图带岩层底、小地图即时更新、枯竭状态可逆，流体近距离 8×8 每区块产量、远距离合并为单个区域）。
+> **v1.00-hotfix-02** —— 许可证改为 **LGPL-3.0-only**。GTCEu 和 Minecraft 的贴图改为从已安装的模组/游戏
+> 运行时读取，不再打包进本模组。功能保持 v1.00 正式版，包括枯竭矿脉贴图上的红色叉号。
 
 - **模组 ID**：`visualvein`
-- **版本**：`1.0.1`（发布名 1.00-hotfix-01）
+- **版本**：`1.0.2`（发布名 1.00-hotfix-02）
+- **许可证**：LGPL-3.0-only
 - **状态**：正式版热修复
 - **前置**：Forge 47.x、GTCEu Modern 1.20.1（1.4.4 及以上）、JourneyMap 1.20.1（仅客户端需要）
 - **JourneyMap 版本**：支持 5.x（API v1，例如 5.10.3）和 6.x（API v2，例如 6.0.7）。
@@ -94,7 +95,7 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 1. 安装 Minecraft 1.20.1 + Forge 47.x。
 2. 把 `gtceu-1.20.1-*.jar`、`journeymap-1.20.1-*.jar` 放进 `mods`；
    JourneyMap 6.x 还需 `common-networking-forge-1.20.1-*.jar`。
-3. 把 `visualvein-1.0.1.jar` 放进 **客户端和服务端** 的 `mods`。
+3. 把 `visualvein-1.0.2.jar` 放进 **客户端和服务端** 的 `mods`。
 4. 启动游戏，进入世界后手动标记矿脉；打开 JourneyMap 查看。
 
 > 旧存档无需清空：自动扫描会补齐数据，未标记矿脉默认隐藏。
@@ -108,7 +109,7 @@ set JAVA_HOME=C:\Program Files\Java\jdk-17
 gradlew.bat build
 ```
 
-产物在 `build/libs/visualvein-1.0.1.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
+产物在 `build/libs/visualvein-1.0.2.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
 已被 `.gitignore` 排除，不会提交到仓库。克隆后需要自行放入对应版本的编译依赖。
 
 ## 实现说明
@@ -132,4 +133,9 @@ gradlew.bat build
 
 ## 许可
 
-MIT。`libs/` 中的 GTCEu 与 JourneyMap jar 仅用于本地编译，版权归各自作者所有。
+VisualVein 代码使用 **LGPL-3.0-only**。完整协议见 [LICENSE](LICENSE)，第三方声明见
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+本模组是独立项目，不是 VisualProspecting、GTCEu 或 JourneyMap 的分支。GTCEu 矿石贴图和 Minecraft
+岩层贴图在运行时从已安装的游戏读取，不打包进 VisualVein 的 jar。`libs/` 中的 GTCEu 与 JourneyMap
+jar 仅用于本地编译，版权归各自作者所有。

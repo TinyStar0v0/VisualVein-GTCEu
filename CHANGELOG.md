@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.2 — license hotfix (1.00-hotfix-02)
+
+- Project license changed from MIT to **LGPL-3.0-only**.
+- Added the full LGPL-3.0 text (`LICENSE`) and `THIRD_PARTY_NOTICES.md`.
+- `LICENSE` and `THIRD_PARTY_NOTICES.md` are included in `META-INF` inside the jar.
+- GTCEu ore textures and Minecraft host-rock textures are now read at runtime from the installed
+  game/mods; `textures/oresets` and `textures/bases` are no longer bundled.
+- Includes the 1.0.1 depleted-cross and overlay-recreation fixes.
+- Internal Forge version is `1.0.2`; release name is `1.00-hotfix-02`.
+
 ## 1.0.1 — hotfix (1.00-hotfix-01)
 
 - Texture-mode depleted veins now draw a red cross over the ore marker on the map.
