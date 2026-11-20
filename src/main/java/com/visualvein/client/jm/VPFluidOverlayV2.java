@@ -2,10 +2,8 @@ package com.visualvein.client.jm;
 
 import com.visualvein.VisualVein;
 import com.visualvein.client.ClientFluidCache;
-import com.visualvein.client.ClientVeinCache;
 import com.visualvein.config.VPConfig;
 import com.visualvein.data.FluidVeinRecord;
-import com.visualvein.data.VeinRecord;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.display.IOverlayListener;
 import journeymap.api.v2.client.display.PolygonOverlay;
@@ -52,7 +50,8 @@ public final class VPFluidOverlayV2 {
 
     public static void init(IClientAPI clientApi) {
         api = clientApi;
-        enabled = VPConfig.CLIENT.showFluidVeins().get();
+        // Fluid and ore are alternate map modes now; start with ore, not fluid.
+        enabled = false;
     }
 
     public static boolean isEnabled() {
@@ -145,11 +144,6 @@ public final class VPFluidOverlayV2 {
 
         List<FluidVeinRecord> records = new ArrayList<>();
         for (FluidVeinRecord record : ClientFluidCache.get(dimension)) {
-            // An 8x8 fluid region often contains a marked ore vein. Ore markers win: hide the
-            // big fluid square and its tooltip there instead of stacking two hover boxes.
-            if (oreNear(dimension, record)) {
-                continue;
-            }
             if (inView(state, record.centerX(), record.centerZ())) {
                 records.add(record);
             }
@@ -208,23 +202,6 @@ public final class VPFluidOverlayV2 {
                 TITLES.put(record.key(), title);
             }
         }
-    }
-
-    private static boolean oreNear(ResourceLocation dimension, FluidVeinRecord fluid) {
-        ClientVeinCache.DimensionData data = ClientVeinCache.get(dimension);
-        if (data == null) {
-            return false;
-        }
-        for (VeinRecord ore : data.all()) {
-            if (!ore.marked) {
-                continue;
-            }
-            if (Math.abs(ore.centerX - fluid.centerX()) <= 64
-                    && Math.abs(ore.centerZ - fluid.centerZ()) <= 64) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static boolean inView(UIState state, int x, int z) {

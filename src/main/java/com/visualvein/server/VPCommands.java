@@ -243,10 +243,8 @@ public final class VPCommands {
                 + GTRegistries.ORE_VEINS.keys().size()), false);
         source.sendSuccess(() -> Component.literal("Scanner: " + VeinScanner.debugStats()), false);
         try {
-            net.minecraft.world.level.ChunkPos center = new net.minecraft.world.level.ChunkPos(
-                    (int) source.getPosition().x >> 4, (int) source.getPosition().z >> 4);
-            var fluids = FluidVeinSyncManager.scan(level, center, 8);
-            source.sendSuccess(() -> Component.literal("Fluid vein regions nearby: " + fluids.size()), false);
+            var fluids = FluidVeinSyncManager.discovered(level);
+            source.sendSuccess(() -> Component.literal("Discovered fluid vein regions: " + fluids.size()), false);
             for (int i = 0; i < Math.min(5, fluids.size()); i++) {
                 var fluid = fluids.get(i);
                 source.sendSuccess(() -> Component.literal("  " + fluid.fluidId()

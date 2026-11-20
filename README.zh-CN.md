@@ -5,10 +5,11 @@
 一个面向 **Minecraft 1.20.1 / Forge** 的 **GregTech CEu Modern（GTCEu）** 矿脉辅助模组。
 它把 GTCEu 世界生成中的矿脉信息记录下来，并显示在 **JourneyMap（旅行地图）** 的全屏地图和小地图上。
 
-> **Beta b0.05** —— 公开测试版。Forge 要求版本号以数字开头，因此内部版本是 `0.5.0-beta`，界面/发布名仍叫 b0.05。模组 ID 和 Java 包为 `visualvein`；b0.03 的旧存档/配置不会自动迁移。
+> **Beta b0.06** —— 流体矿脉改为手动发现，矿物/流体图层改为地图按钮切换。Forge 内部版本是
+> `0.6.0-beta`，界面/发布名仍叫 b0.06。
 
 - **模组 ID**：`visualvein`
-- **版本**：`0.5.0-beta`（Beta b0.05）
+- **版本**：`0.6.0-beta`（Beta b0.06）
 - **前置**：Forge 47.x、GTCEu Modern 1.20.1（1.4.4 及以上）、JourneyMap 1.20.1（仅客户端需要）
 - **JourneyMap 版本**：支持 5.x（API v1，例如 5.10.3）和 6.x（API v2，例如 6.0.7）。
   JourneyMap 6.x 还需要 **Common Networking**（`common-networking-forge-1.20.1`）。
@@ -40,20 +41,22 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
   “地图文字”，此时文字向上偏移。
 - 悬停显示矿脉名、层级、中心、Y、尺寸、密度、权重百分比、同原点其他层、地表矿、已开采近似值、
   标记来源和枯竭状态。
-- 地图右侧 **VP** 按钮或 `V` 键打开控制面板，可开关矿脉图层、地图文字、小地图显示、流体矿脉。
+- 地图右侧有独立的 **矿物矿脉** 和 **流体矿脉** 切换按钮，两者只显示一个。`V`/VP 按钮打开的是
+  文字、小地图、扫描设置面板。
 - **右键已标记矿脉**可切换“已枯竭/未枯竭”，状态保存并同步。
 - **双击已标记矿脉或流体矿脉**可创建/移除 JourneyMap 路径点。
 - 鼠标悬停矿脉时按 **Delete** 可直接切换枯竭状态，无需打开右键菜单。
 - VP 面板不再显示“最近矿脉”列表；请用 `B`、双击或 `/vpwaypoint` 创建路径点。
 - 已创建的图层会跨地图关闭/重开缓存，再次打开地图时显示明显更快。
 
-### 流体矿脉优先级
+### 流体矿脉发现
 
-- 读取 GTCEu 的 `BedrockFluidVeinSavedData`，显示 8×8 区块流体区域。
-- **同一区域已经有矿物矿脉标记时，优先显示矿物矿脉，隐藏该流体方块和它的悬停框**，避免两个
-  大框和两段文字叠在一起。
-- 没有矿物矿脉的区域仍单独显示流体矿脉；流体名称只放在悬停详情中，不再画常驻文字。
-- 流体图层可单独开关。
+- 流体矿脉**不会自动读取/同步**，必须先发现：
+  - 使用 GTCEu 探矿仪的 **流体模式**（`gtceu:prospector.hv/luv`）右键；或
+  - 空手右键基岩，发现该基岩所在的流体区域。
+- 已发现的 8×8 区块区域会按维度持久化，并同步给玩家。
+- 地图右侧 **流体矿脉** 按钮会打开流体图层并关闭矿物图层；**矿物矿脉** 按钮反之。两者不再
+  同时显示，也不再抢覆盖层。
 
 ### 开采统计
 
@@ -88,7 +91,7 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 1. 安装 Minecraft 1.20.1 + Forge 47.x。
 2. 把 `gtceu-1.20.1-*.jar`、`journeymap-1.20.1-*.jar` 放进 `mods`；
    JourneyMap 6.x 还需 `common-networking-forge-1.20.1-*.jar`。
-3. 把 `visualvein-0.5.0-beta.jar` 放进 **客户端和服务端** 的 `mods`。
+3. 把 `visualvein-0.6.0-beta.jar` 放进 **客户端和服务端** 的 `mods`。
 4. 启动游戏，进入世界后手动标记矿脉；打开 JourneyMap 查看。
 
 > 旧存档无需清空：自动扫描会补齐数据，未标记矿脉默认隐藏。
@@ -102,7 +105,7 @@ set JAVA_HOME=C:\Program Files\Java\jdk-17
 gradlew.bat build
 ```
 
-产物在 `build/libs/visualvein-0.5.0-beta.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
+产物在 `build/libs/visualvein-0.6.0-beta.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
 已被 `.gitignore` 排除，不会提交到仓库。克隆后需要自行放入对应版本的编译依赖。
 
 ## 实现说明

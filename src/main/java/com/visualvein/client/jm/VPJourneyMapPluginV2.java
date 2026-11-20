@@ -14,6 +14,7 @@ import journeymap.api.v2.client.IClientPlugin;
 import journeymap.api.v2.client.JmApiVersion;
 import journeymap.api.v2.client.display.IOverlayListener;
 import journeymap.api.v2.client.display.PolygonOverlay;
+import journeymap.api.v2.client.fullscreen.IThemeButton;
 import journeymap.api.v2.client.event.DisplayUpdateEvent;
 import journeymap.api.v2.client.event.MappingEvent;
 import journeymap.api.v2.client.model.MapPolygon;
@@ -53,6 +54,9 @@ import java.util.Set;
 @JourneyMapPlugin(apiVersion = JmApiVersion.VERSION)
 public final class VPJourneyMapPluginV2 implements IClientPlugin {
 
+    private static IThemeButton oreButton;
+    private static IThemeButton fluidButton;
+
     @Override
     public String getModId() {
         return VisualVein.MODID;
@@ -90,13 +94,49 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 VPFluidOverlayV2.markDirty();
             }
         });
-        FullscreenEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(VisualVein.MODID, event ->
-                event.getThemeButtonDisplay().addThemeButton(
-                        "VP",
-                        new ResourceLocation(VisualVein.MODID, "textures/gui/vp_icon.png"),
-                        button -> ClientHooks.openMenu.run()
-                ));
+        FullscreenEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(VisualVein.MODID, event -> {
+            var display = event.getThemeButtonDisplay();
+            oreButton = display.addThemeToggleButton(
+                    Component.translatable("vp.button.ore").getString(),
+                    new ResourceLocation(VisualVein.MODID, "textures/gui/ore_icon.png"),
+                    VeinOverlayManagerV2.isEnabled(),
+                    button -> {
+                        if (Boolean.TRUE.equals(button.getToggled())) {
+                            VeinOverlayManagerV2.setEnabled(true);
+                            VPFluidOverlayV2.setEnabled(false);
+                        } else {
+                            VeinOverlayManagerV2.setEnabled(false);
+                        }
+                        syncMapButtons();
+                    });
+            fluidButton = display.addThemeToggleButton(
+                    Component.translatable("vp.button.fluid").getString(),
+                    new ResourceLocation(VisualVein.MODID, "textures/gui/fluid_icon.png"),
+                    VPFluidOverlayV2.isEnabled(),
+                    button -> {
+                        if (Boolean.TRUE.equals(button.getToggled())) {
+                            VPFluidOverlayV2.setEnabled(true);
+                            VeinOverlayManagerV2.setEnabled(false);
+                        } else {
+                            VPFluidOverlayV2.setEnabled(false);
+                        }
+                        syncMapButtons();
+                    });
+            display.addThemeButton(
+                    "VP",
+                    new ResourceLocation(VisualVein.MODID, "textures/gui/vp_icon.png"),
+                    button -> ClientHooks.openMenu.run());
+        });
         VisualVein.LOGGER.info("JourneyMap 6.x (API v2) integration enabled");
+    }
+
+    private static void syncMapButtons() {
+        if (oreButton != null) {
+            oreButton.setToggled(VeinOverlayManagerV2.isEnabled());
+        }
+        if (fluidButton != null) {
+            fluidButton.setToggled(VPFluidOverlayV2.isEnabled());
+        }
     }
 
     public static final class VeinOverlayManagerV2 {

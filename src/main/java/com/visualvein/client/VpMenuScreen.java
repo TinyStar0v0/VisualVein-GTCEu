@@ -20,14 +20,9 @@ public class VpMenuScreen extends Screen {
     protected void init() {
         super.init();
         int left = this.width / 2 - WIDTH / 2;
-        int top = this.height / 2 - 72;
+        int top = this.height / 2 - 48;
         int y = top;
 
-        addRenderableWidget(Button.builder(overlayLabel(), button -> {
-            ClientHooks.toggleOverlay.run();
-            refresh();
-        }).bounds(left, y, WIDTH, 20).build());
-        y += 24;
         addRenderableWidget(Button.builder(label("vp.menu.labels", ClientHooks.labelsEnabled.getAsBoolean()),
                 button -> {
                     ClientHooks.toggleLabels.run();
@@ -40,12 +35,6 @@ public class VpMenuScreen extends Screen {
                     refresh();
                 }).bounds(left, y, WIDTH, 20).build());
         y += 24;
-        addRenderableWidget(Button.builder(label("vp.menu.fluid", ClientHooks.fluidEnabled.getAsBoolean()),
-                button -> {
-                    ClientHooks.toggleFluid.run();
-                    refresh();
-                }).bounds(left, y, WIDTH, 20).build());
-        y += 28;
         addRenderableWidget(Button.builder(Component.translatable("vp.menu.scan"), button -> {
             ClientHooks.scanNearby.run();
             onClose();
@@ -58,10 +47,6 @@ public class VpMenuScreen extends Screen {
     private void refresh() {
         this.clearWidgets();
         this.init(this.minecraft, this.width, this.height);
-    }
-
-    private static Component overlayLabel() {
-        return label("vp.menu.overlay", ClientHooks.overlayEnabled.getAsBoolean());
     }
 
     private static Component label(String key, boolean on) {

@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -54,11 +55,15 @@ public final class VeinInteractionHandler {
         if (event.getHand() != InteractionHand.MAIN_HAND) {
             return;
         }
+        BlockPos pos = event.getPos();
+        BlockState state = level.getBlockState(pos);
+        if (event.getItemStack().isEmpty() && state.is(Blocks.BEDROCK)) {
+            FluidVeinSyncManager.discoverAt(level, player, pos);
+            return;
+        }
         if (handleProspector(player, event.getItemStack())) {
             return;
         }
-        BlockPos pos = event.getPos();
-        BlockState state = level.getBlockState(pos);
         if (state.getBlock() instanceof SurfaceRockBlock rock) {
             markSurfaceRock(level, player, pos, rock.getMaterial());
         }
@@ -110,6 +115,14 @@ public final class VeinInteractionHandler {
         if (!(player.level() instanceof ServerLevel level)) {
             return false;
         }
+        if (player.isShiftKeyDown()) {
+            // GTCEu uses sneak-use to switch prospector modes; don't scan on that click.
+            return true;
+        }
+        if (isFluidMode(stack)) {
+            FluidVeinSyncManager.discoverAround(level, player, 8);
+            return true;
+        }
         long now = level.getGameTime();
         Long last = LAST_PROSPECTOR_SCAN.get(player.getUUID());
         if (last != null && now - last < 10L) {
@@ -139,6 +152,10 @@ public final class VeinInteractionHandler {
             player.sendSystemMessage(Component.translatable("vp.msg.prospector_none"));
         }
         return true;
+    }
+
+    private static boolean isFluidMode(ItemStack stack) {
+        return stack.getTag() != null && stack.getTag().getInt("Mode") == 1;
     }
 
     private static void markSurfaceRock(ServerLevel level, ServerPlayer player, BlockPos pos, Material material) {

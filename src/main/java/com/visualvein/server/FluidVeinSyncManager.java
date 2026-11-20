@@ -3,92 +3,131 @@ package com.visualvein.server;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSavedData;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.FluidVeinWorldEntry;
-import com.visualvein.VisualVein;
+import com.visualvein.data.FluidDiscoveryData;
 import com.visualvein.data.FluidVeinRecord;
 import com.visualvein.network.FluidSyncPacket;
 import com.visualvein.network.VPNetwork;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Syncs GTCEu's bedrock fluid veins (oil, natural gas, ...) to clients. GTCEu already persists the
- * authoritative fluid data; we only read it and mirror an 8x8-chunk region snapshot.
+ * Server-side fluid vein discovery. GTCEu owns the real fluid data; this class only exposes regions
+ * the player has actually discovered by using a fluid-mode prospector or right-clicking bedrock
+ * with an empty hand. Opening the map or logging in never reveals undiscovered fields.
  */
-@Mod.EventBusSubscriber(modid = VisualVein.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class FluidVeinSyncManager {
 
     private static final int REGION_CHUNKS = BedrockFluidVeinSavedData.VEIN_CHUNK_SIZE;
-    private static int tickCounter;
 
     private FluidVeinSyncManager() {
     }
 
     public static void sendFull(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
-        List<FluidVeinRecord> records = scan(level, player.chunkPosition(), 8);
-        VPNetwork.sendToPlayer(player, new FluidSyncPacket(level.dimension().location(), true, records));
+        VPNetwork.sendToPlayer(player, new FluidSyncPacket(
+                level.dimension().location(), true, discovered(level)));
     }
 
-    public static List<FluidVeinRecord> scan(ServerLevel level, ChunkPos center, int radiusChunks) {
-        BedrockFluidVeinSavedData data = BedrockFluidVeinSavedData.getOrCreate(level);
-        int minRegionX = Math.floorDiv(center.x - radiusChunks, REGION_CHUNKS);
-        int maxRegionX = Math.floorDiv(center.x + radiusChunks, REGION_CHUNKS);
-        int minRegionZ = Math.floorDiv(center.z - radiusChunks, REGION_CHUNKS);
-        int maxRegionZ = Math.floorDiv(center.z + radiusChunks, REGION_CHUNKS);
-        List<FluidVeinRecord> result = new ArrayList<>();
-        for (int regionX = minRegionX; regionX <= maxRegionX; regionX++) {
-            for (int regionZ = minRegionZ; regionZ <= maxRegionZ; regionZ++) {
-                int chunkX = regionX * REGION_CHUNKS + REGION_CHUNKS / 2;
-                int chunkZ = regionZ * REGION_CHUNKS + REGION_CHUNKS / 2;
-                FluidVeinWorldEntry entry = data.getFluidVeinWorldEntry(chunkX, chunkZ);
-                if (entry == null || entry.getDefinition() == null) {
-                    continue;
+    public static List<FluidVeinRecord> discovered(ServerLevel level) {
+        ResourceLocation dimension = level.dimension().location();
+        FluidDiscoveryData data = FluidDiscoveryData.get(level.getServer());
+        List<FluidVeinRecord> records = new ArrayList<>();
+        for (String key : data.get(dimension)) {
+            String[] parts = key.split(":");
+            if (parts.length != 2) {
+                continue;
+            }
+            try {
+                FluidVeinRecord record = recordAt(level, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+                if (record != null) {
+                    records.add(record);
                 }
-                BedrockFluidDefinition definition = entry.getDefinition();
-                Fluid fluid = definition.getStoredFluid().get();
-                if (fluid == null) {
-                    continue;
-                }
-                ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(fluid);
-                if (fluidId == null) {
-                    continue;
-                }
-                result.add(new FluidVeinRecord(regionX, regionZ,
-                        chunkX * 16 + 8, chunkZ * 16 + 8,
-                        fluidId, entry.getFluidYield(), definition.getDepletedYield(),
-                        entry.getOperationsRemaining(), BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS));
+            } catch (NumberFormatException ignored) {
+                // Skip malformed keys from older/hand-edited data.
             }
         }
-        return result;
+        return records;
     }
 
-    @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
+    /**
+     * Used by a GTCEu prospector in FLUID mode. Adds every fluid region in range that actually has a
+     * field; returns the number of newly discovered regions.
+     */
+    public static int discoverAround(ServerLevel level, ServerPlayer player, int radiusChunks) {
+        ResourceLocation dimension = level.dimension().location();
+        FluidDiscoveryData data = FluidDiscoveryData.get(level.getServer());
+        int minRegionX = Math.floorDiv(player.chunkPosition().x - radiusChunks, REGION_CHUNKS);
+        int maxRegionX = Math.floorDiv(player.chunkPosition().x + radiusChunks, REGION_CHUNKS);
+        int minRegionZ = Math.floorDiv(player.chunkPosition().z - radiusChunks, REGION_CHUNKS);
+        int maxRegionZ = Math.floorDiv(player.chunkPosition().z + radiusChunks, REGION_CHUNKS);
+        int found = 0;
+        for (int regionX = minRegionX; regionX <= maxRegionX; regionX++) {
+            for (int regionZ = minRegionZ; regionZ <= maxRegionZ; regionZ++) {
+                if (recordAt(level, regionX, regionZ) != null && data.discover(dimension, regionX, regionZ)) {
+                    found++;
+                }
+            }
         }
-        if (++tickCounter < 600) {
-            return;
-        }
-        tickCounter = 0;
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) {
-            return;
-        }
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+        if (found > 0) {
             sendFull(player);
+            player.sendSystemMessage(Component.translatable("vp.msg.fluid_discovered", found));
+        } else {
+            player.sendSystemMessage(Component.translatable("vp.msg.fluid_none"));
         }
+        return found;
+    }
+
+    /**
+     * Empty-hand right-click on bedrock: reveal the fluid region covering that block.
+     */
+    public static int discoverAt(ServerLevel level, ServerPlayer player, BlockPos pos) {
+        int regionX = Math.floorDiv(pos.getX() >> 4, REGION_CHUNKS);
+        int regionZ = Math.floorDiv(pos.getZ() >> 4, REGION_CHUNKS);
+        if (recordAt(level, regionX, regionZ) == null) {
+            player.sendSystemMessage(Component.translatable("vp.msg.fluid_bedrock_none"));
+            return 0;
+        }
+        boolean added = FluidDiscoveryData.get(level.getServer())
+                .discover(level.dimension().location(), regionX, regionZ);
+        if (added) {
+            sendFull(player);
+            player.sendSystemMessage(Component.translatable("vp.msg.fluid_discovered", 1));
+            return 1;
+        }
+        player.sendSystemMessage(Component.translatable("vp.msg.fluid_already"));
+        return 0;
+    }
+
+    private static FluidVeinRecord recordAt(ServerLevel level, int regionX, int regionZ) {
+        int chunkX = regionX * REGION_CHUNKS + REGION_CHUNKS / 2;
+        int chunkZ = regionZ * REGION_CHUNKS + REGION_CHUNKS / 2;
+        BedrockFluidVeinSavedData data = BedrockFluidVeinSavedData.getOrCreate(level);
+        FluidVeinWorldEntry entry = data.getFluidVeinWorldEntry(chunkX, chunkZ);
+        if (entry == null || entry.getDefinition() == null) {
+            return null;
+        }
+        BedrockFluidDefinition definition = entry.getDefinition();
+        Fluid fluid = definition.getStoredFluid().get();
+        if (fluid == null) {
+            return null;
+        }
+        ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+        if (fluidId == null) {
+            return null;
+        }
+        return new FluidVeinRecord(regionX, regionZ,
+                chunkX * 16 + 8, chunkZ * 16 + 8,
+                fluidId, entry.getFluidYield(), definition.getDepletedYield(),
+                entry.getOperationsRemaining(), BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
     }
 }
