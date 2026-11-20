@@ -385,10 +385,28 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 return;
             }
             Map<String, VeinGroup> groups = groupMap(data, state);
-            for (Map.Entry<String, Overlay> entry : SHOWN.entrySet()) {
+            // Iterate a snapshot: a texture style change recreates the ImageOverlay, which mutates
+            // SHOWN and would otherwise throw ConcurrentModificationException.
+            for (Map.Entry<String, Overlay> entry : new ArrayList<>(SHOWN.entrySet())) {
                 VeinGroup group = groups.get(entry.getKey());
                 if (group == null) {
                     continue;
+                }
+                String style = styleKey(group.primary());
+                if (!style.equals(STYLES.get(entry.getKey()))) {
+                    if (textureMode && entry.getValue() instanceof ImageOverlay) {
+                        // ImageOverlay caches its image in the JourneyMap draw step. Replacing the
+                        // MapImage alone is not enough on 6.0.7, so recreate the overlay to make
+                        // the depleted cross appear/disappear immediately.
+                        api.remove(entry.getValue());
+                        SHOWN.remove(entry.getKey());
+                        TITLES.remove(entry.getKey());
+                        STYLES.remove(entry.getKey());
+                        showOverlay(state, group);
+                        continue;
+                    }
+                    applyStyle(entry.getValue(), group.primary(), state.dimension.location());
+                    STYLES.put(entry.getKey(), style);
                 }
                 String title = group.title();
                 String label = labelsEnabled ? group.label() : null;
@@ -397,11 +415,6 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     entry.getValue().setTitle(title);
                     entry.getValue().setLabel(label);
                     TITLES.put(entry.getKey(), title);
-                }
-                String style = styleKey(group.primary());
-                if (!style.equals(STYLES.get(entry.getKey()))) {
-                    applyStyle(entry.getValue(), group.primary(), state.dimension.location());
-                    STYLES.put(entry.getKey(), style);
                 }
                 entry.getValue().flagForRerender();
             }
