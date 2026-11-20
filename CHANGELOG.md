@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — hotfix (1.00-hotfix-01)
+
+- Texture-mode depleted veins now draw a red cross over the ore marker on the map.
+- The cross disappears immediately when the vein is restored to active.
+- Internal Forge version is `1.0.1` (numeric); the release name is `1.00-hotfix-01`.
+
 ## 1.0.0 — first stable release (v1.00)
 
 ### Map layer

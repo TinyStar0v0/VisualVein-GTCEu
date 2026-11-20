@@ -400,7 +400,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 }
                 String style = styleKey(group.primary());
                 if (!style.equals(STYLES.get(entry.getKey()))) {
-                    applyStyle(entry.getValue(), group.primary());
+                    applyStyle(entry.getValue(), group.primary(), state.dimension.location());
                     STYLES.put(entry.getKey(), style);
                 }
                 entry.getValue().flagForRerender();
@@ -509,7 +509,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             NativeImage base = loadNative(baseTexture);
             NativeImage ore = loadNative(texture);
             if (base != null || ore != null) {
-                NativeImage composite = composeMarker(base, ore, tint);
+                NativeImage composite = composeMarker(base, ore, tint, record.depleted);
                 if (base != null) {
                     base.close();
                 }
@@ -539,7 +539,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         }
 
         @Nullable
-        private static NativeImage composeMarker(@Nullable NativeImage base, @Nullable NativeImage ore, int tint) {
+        private static NativeImage composeMarker(@Nullable NativeImage base, @Nullable NativeImage ore,
+                                                 int tint, boolean depleted) {
             try {
                 NativeImage output = new NativeImage(16, 16, false);
                 int tintR = (tint >> 16) & 0xFF;
@@ -569,10 +570,25 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                         output.setPixelRGBA(x, y, (outA << 24) | (outR << 16) | (outG << 8) | outB);
                     }
                 }
+                if (depleted) {
+                    drawDepletedCross(output);
+                }
                 return output;
             } catch (Throwable throwable) {
                 VisualVein.LOGGER.debug("Could not compose ore marker", throwable);
                 return null;
+            }
+        }
+
+        private static void drawDepletedCross(NativeImage image) {
+            int red = 0xFFFF3030;
+            for (int i = 0; i < 16; i++) {
+                image.setPixelRGBA(i, i, red);
+                image.setPixelRGBA(i, 15 - i, red);
+                if (i < 15) {
+                    image.setPixelRGBA(i + 1, i, red);
+                    image.setPixelRGBA(i + 1, 15 - i, red);
+                }
             }
         }
 
@@ -642,12 +658,11 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     + ":" + tintFor(record) + ":" + (minimapEnabled ? "M" : "F");
         }
 
-        private static void applyStyle(Overlay overlay, VeinRecord record) {
+        private static void applyStyle(Overlay overlay, VeinRecord record, ResourceLocation dimension) {
             if (overlay instanceof ImageOverlay image) {
-                MapImage icon = image.getImage();
-                // The base stone/deepslate/... and the ore tint are baked into the NativeImage.
-                icon.setColor(0xFFFFFF);
-                image.setImage(icon);
+                // Rebuild the composite so a depleted vein gets its red cross, and a restored
+                // vein loses it, without recreating the JourneyMap overlay itself.
+                image.setImage(mapImageFor(record, dimension));
             } else if (overlay instanceof PolygonOverlay polygon) {
                 polygon.setShapeProperties(shapeFor(record));
             }
