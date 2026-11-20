@@ -5,11 +5,11 @@
 一个面向 **Minecraft 1.20.1 / Forge** 的 **GregTech CEu Modern（GTCEu）** 矿脉辅助模组。
 它把 GTCEu 世界生成中的矿脉信息记录下来，并显示在 **JourneyMap（旅行地图）** 的全屏地图和小地图上。
 
-> **Beta b0.09** —— 流体产量文字更小且只在大地图显示；矿脉改用图片覆盖层，VP 菜单可切换贴图/纯色；
-> 小地图即时更新。Forge 内部版本是 `0.9.0-beta`，界面/发布名仍叫 b0.09。
+> **Beta b0.10** —— 流体产量文字更小且只在大地图显示；矿脉改用图片覆盖层，VP 菜单可切换贴图/纯色；
+> 小地图即时更新。Forge 内部版本是 `0.10.0-beta`，界面/发布名仍叫 b0.10。
 
 - **模组 ID**：`visualvein`
-- **版本**：`0.9.0-beta`（Beta b0.09）
+- **版本**：`0.10.0-beta`（Beta b0.10）
 - **前置**：Forge 47.x、GTCEu Modern 1.20.1（1.4.4 及以上）、JourneyMap 1.20.1（仅客户端需要）
 - **JourneyMap 版本**：支持 5.x（API v1，例如 5.10.3）和 6.x（API v2，例如 6.0.7）。
   JourneyMap 6.x 还需要 **Common Networking**（`common-networking-forge-1.20.1`）。
@@ -55,7 +55,7 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 - 流体矿脉**不会自动读取/同步**，必须先发现：
   - 使用 GTCEu 探矿仪的 **流体模式**（`gtceu:prospector.hv/luv`）右键；或
   - 空手右键基岩，发现该基岩所在的流体区域。
-- 已发现的流体区域会以完整 **8×8 区块网格**显示，每个区块单独显示自己的产量。产量文字更小、只在近距离显示，并且**只在大地图显示**，小地图保持干净。
+- 大地图近距离时，已发现区域会以完整 **8×8 区块网格**显示，每个区块单独显示产量；远距离和小地图会合并成一个区域方块以保证帧率。产量文字更小、只在近距离显示，并且**只在大地图显示**，小地图保持干净。
 - 已发现的区域会按维度持久化，并同步给玩家。
 - 地图右侧 **流体矿脉** 按钮会打开流体图层并关闭矿物图层；**矿物矿脉** 按钮反之；
   **关闭覆盖层** 两者都关闭。两者不再同时显示，也不再抢覆盖层。
@@ -93,7 +93,7 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 1. 安装 Minecraft 1.20.1 + Forge 47.x。
 2. 把 `gtceu-1.20.1-*.jar`、`journeymap-1.20.1-*.jar` 放进 `mods`；
    JourneyMap 6.x 还需 `common-networking-forge-1.20.1-*.jar`。
-3. 把 `visualvein-0.9.0-beta.jar` 放进 **客户端和服务端** 的 `mods`。
+3. 把 `visualvein-0.10.0-beta.jar` 放进 **客户端和服务端** 的 `mods`。
 4. 启动游戏，进入世界后手动标记矿脉；打开 JourneyMap 查看。
 
 > 旧存档无需清空：自动扫描会补齐数据，未标记矿脉默认隐藏。
@@ -107,7 +107,7 @@ set JAVA_HOME=C:\Program Files\Java\jdk-17
 gradlew.bat build
 ```
 
-产物在 `build/libs/visualvein-0.9.0-beta.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
+产物在 `build/libs/visualvein-0.10.0-beta.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
 已被 `.gitignore` 排除，不会提交到仓库。克隆后需要自行放入对应版本的编译依赖。
 
 ## 实现说明

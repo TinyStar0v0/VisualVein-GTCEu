@@ -42,6 +42,7 @@
   "vp.tooltip.active": "active",
   "vp.label.depleted": "[Depleted]",
 
+  "vp.fluid.tooltip.zoom_for_chunks": "Zoom in to see per-chunk yields",
   "vp.fluid.tooltip.chunk": "Chunk: %s, %s",
   "vp.fluid.tooltip.chunk_yield": "Chunk yield: %s L/t",
   "vp.fluid.tooltip.region": "Fluid region: %s, %s",
@@ -83,7 +84,7 @@
   "vp.dimension.the_nether": "Nether",
   "vp.dimension.the_end": "The End",
 
-  "vp.command.help.header": "VisualVein: GTCEu (Beta b0.09)",
+  "vp.command.help.header": "VisualVein: GTCEu (Beta b0.10)",
   "vp.command.help.list": "/vp list [page] - list discovered veins in this dimension",
   "vp.command.help.nearest": "/vp nearest - details of the nearest vein",
   "vp.command.help.scan": "/vp scan [radius] - scan the GTCEu vein grid around you",

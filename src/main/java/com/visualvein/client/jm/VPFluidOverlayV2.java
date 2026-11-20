@@ -164,6 +164,9 @@ public final class VPFluidOverlayV2 {
             records = records.subList(0, 16);
         }
 
+        // At far zoom (and on the minimap) use one region polygon. Only split into 64 chunk
+        // tiles at close fullscreen zoom; otherwise the overlay and text count destroys FPS.
+        boolean perChunk = state.ui == Context.UI.Fullscreen && state.zoom >= 1024;
         Set<String> keep = new HashSet<>();
         Map<String, String> desiredTitles = new HashMap<>();
         for (FluidVeinRecord record : records) {
@@ -172,6 +175,24 @@ public final class VPFluidOverlayV2 {
                 continue;
             }
             String name = new FluidStack(fluid, 1).getDisplayName().getString();
+            if (!perChunk) {
+                String key = record.key();
+                keep.add(key);
+                desiredTitles.put(key, regionTitle(record, name));
+                if (!SHOWN.containsKey(key)) {
+                    PolygonOverlay overlay = createRegionOverlay(state, record, name);
+                    if (overlay != null) {
+                        try {
+                            api.show(overlay);
+                            SHOWN.put(key, overlay);
+                            TITLES.put(key, overlay.getTitle());
+                        } catch (Throwable throwable) {
+                            VisualVein.LOGGER.warn("Could not show fluid region {}", key, throwable);
+                        }
+                    }
+                }
+                continue;
+            }
             int[] yields = record.chunkYields();
             for (int dx = 0; dx < 8; dx++) {
                 for (int dz = 0; dz < 8; dz++) {
@@ -231,6 +252,51 @@ public final class VPFluidOverlayV2 {
         return Math.abs(x - center.getX()) <= 512 && Math.abs(z - center.getZ()) <= 512;
     }
 
+    private static PolygonOverlay createRegionOverlay(UIState state, FluidVeinRecord record, String name) {
+        int color = fluidColor(record.fluidId());
+        ShapeProperties shape = new ShapeProperties()
+                .setFillColor(color)
+                .setFillOpacity(0.28F)
+                .setStrokeColor(brighten(color))
+                .setStrokeOpacity(0.7F)
+                .setStrokeWidth(1.0F);
+        int x = record.centerX();
+        int z = record.centerZ();
+        MapPolygon polygon = new MapPolygon(
+                new BlockPos(x - 64, 64, z - 64),
+                new BlockPos(x + 64, 64, z - 64),
+                new BlockPos(x + 64, 64, z + 64),
+                new BlockPos(x - 64, 64, z + 64));
+        TextProperties text = new TextProperties()
+                .setColor(0xFFFFFF)
+                .setBackgroundColor(0x081018)
+                .setBackgroundOpacity(0.5F)
+                .setMinZoom(0)
+                .setScale(0.8F);
+        text.setActiveUIs(Context.UI.Fullscreen);
+        text.setActiveMapTypes(Context.MapType.values());
+        PolygonOverlay overlay = new PolygonOverlay(VisualVein.MODID, state.dimension, shape, polygon);
+        overlay.setTitle(regionTitle(record, name));
+        overlay.setLabel(null);
+        overlay.setOverlayGroupName("Fluid Veins");
+        overlay.setDisplayOrder(90);
+        overlay.setActiveMapTypes(Context.MapType.values());
+        overlay.setActiveUIs(Context.UI.Fullscreen, Context.UI.Minimap);
+        overlay.setTextProperties(text);
+        overlay.setOverlayListener(new IOverlayListener() {
+            @Override
+            public boolean onMouseClick(UIState uiState, java.awt.geom.Point2D.Double mouse, BlockPos pos,
+                                        int button, boolean doubleClick) {
+                if (button == 0 && doubleClick) {
+                    toggleWaypoint(uiState, record, name);
+                    return true;
+                }
+                return false;
+            }
+        });
+        return overlay;
+    }
+
     private static PolygonOverlay createOverlay(UIState state, FluidVeinRecord record,
                                                  int dx, int dz, String name, int chunkYield) {
         int chunkX = record.regionX() * 8 + dx;
@@ -254,9 +320,9 @@ public final class VPFluidOverlayV2 {
                 .setColor(0xFFFFFF)
                 .setBackgroundColor(0x081018)
                 .setBackgroundOpacity(0.55F)
-                .setMinZoom(3)
+                .setMinZoom(1024)
                 .setOffsetY(-4)
-                .setScale(0.55F);
+                .setScale(0.35F);
         text.setActiveMapTypes(Context.MapType.values());
         // Keep the minimap clean and readable: yields only appear in the fullscreen map.
         text.setActiveUIs(Context.UI.Fullscreen);
@@ -337,6 +403,20 @@ public final class VPFluidOverlayV2 {
         } catch (Throwable throwable) {
             VisualVein.LOGGER.warn("Could not toggle fluid waypoint", throwable);
         }
+    }
+
+    private static String regionTitle(FluidVeinRecord record, String name) {
+        return name + "\n"
+                + Component.translatable("vp.fluid.tooltip.region",
+                        record.centerX(), record.centerZ()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.zoom_for_chunks").getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.depleted_yield",
+                        record.depletedYield()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.operations",
+                        record.operations(), record.maxOperations()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.status",
+                        Component.translatable(record.depleted()
+                                ? "vp.fluid.status.depleted" : "vp.fluid.status.active").getString()).getString();
     }
 
     private static String title(FluidVeinRecord record, String name, int dx, int dz, int chunkYield) {

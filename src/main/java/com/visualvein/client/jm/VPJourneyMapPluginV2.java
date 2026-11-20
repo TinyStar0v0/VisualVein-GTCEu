@@ -33,6 +33,7 @@ import journeymap.api.v2.common.event.ClientEventRegistry;
 import journeymap.api.v2.common.event.FullscreenEventRegistry;
 import journeymap.api.v2.common.waypoint.Waypoint;
 import journeymap.api.v2.common.waypoint.WaypointFactory;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -501,6 +502,22 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             return new ResourceLocation(VisualVein.MODID, "textures/gui/ore_icon.png");
         }
 
+        private static MapImage mapImageFor(VeinRecord record) {
+            ResourceLocation texture = textureFor(record);
+            try {
+                var resource = Minecraft.getInstance().getResourceManager().getResource(texture).orElse(null);
+                if (resource != null) {
+                    try (var input = resource.open()) {
+                        NativeImage nativeImage = NativeImage.read(input);
+                        return new MapImage(nativeImage).setColor(tintFor(record));
+                    }
+                }
+            } catch (Throwable throwable) {
+                VisualVein.LOGGER.debug("Could not load marker texture {}", texture, throwable);
+            }
+            return new MapImage(texture, 16, 16).setColor(tintFor(record));
+        }
+
         private static int tintFor(VeinRecord record) {
             if (record.depleted) {
                 return 0xFF6666;
@@ -564,8 +581,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             VeinRecord record = group.primary();
             Overlay overlay;
             if (textureMode) {
-                MapImage icon = new MapImage(textureFor(record), 16, 16)
-                        .setColor(tintFor(record));
+                MapImage icon = mapImageFor(record);
                 overlay = new ImageOverlay(VisualVein.MODID,
                         new BlockPos(record.centerX - 8, record.centerY, record.centerZ - 8),
                         new BlockPos(record.centerX + 8, record.centerY, record.centerZ + 8),
