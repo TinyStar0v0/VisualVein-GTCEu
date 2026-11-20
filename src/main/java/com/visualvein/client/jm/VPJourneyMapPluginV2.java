@@ -563,24 +563,25 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     for (int x = 0; x < 16; x++) {
                         int basePixel = base == null ? 0 : base.getPixelRGBA(x, y);
                         int baseA = (basePixel >>> 24) & 0xFF;
-                        int baseR = (basePixel >> 16) & 0xFF;
+                        // NativeImage stores RGBA bytes; the int read by getPixelRGBA is ABGR.
+                        int baseB = (basePixel >> 16) & 0xFF;
                         int baseG = (basePixel >> 8) & 0xFF;
-                        int baseB = basePixel & 0xFF;
+                        int baseR = basePixel & 0xFF;
                         if (ore == null) {
                             output.setPixelRGBA(x, y, basePixel);
                             continue;
                         }
                         int orePixel = ore.getPixelRGBA(x, y);
                         int oreA = (orePixel >>> 24) & 0xFF;
-                        int oreR = ((orePixel >> 16) & 0xFF) * tintR / 255;
+                        int oreR = (orePixel & 0xFF) * tintR / 255;
                         int oreG = ((orePixel >> 8) & 0xFF) * tintG / 255;
-                        int oreB = (orePixel & 0xFF) * tintB / 255;
+                        int oreB = ((orePixel >> 16) & 0xFF) * tintB / 255;
                         int alpha = oreA;
                         int outR = (oreR * alpha + baseR * (255 - alpha)) / 255;
                         int outG = (oreG * alpha + baseG * (255 - alpha)) / 255;
                         int outB = (oreB * alpha + baseB * (255 - alpha)) / 255;
-                        int outA = Math.max(255, baseA);
-                        output.setPixelRGBA(x, y, (outA << 24) | (outR << 16) | (outG << 8) | outB);
+                        int outA = Math.max(baseA, alpha);
+                        output.setPixelRGBA(x, y, (outA << 24) | (outB << 16) | (outG << 8) | outR);
                     }
                 }
                 if (depleted) {
@@ -594,7 +595,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         }
 
         private static void drawDepletedCross(NativeImage image) {
-            int red = 0xFFFF3030;
+            // ABGR int layout, matching getPixelRGBA/setPixelRGBA.
+            int red = 0xFF3030FF;
             for (int i = 0; i < 16; i++) {
                 image.setPixelRGBA(i, i, red);
                 image.setPixelRGBA(i, 15 - i, red);
