@@ -28,6 +28,9 @@ public final class ClientEvents {
         while (ClientSetup.CREATE_WAYPOINT.consumeClick()) {
             ClientHooks.createWaypoint.run();
         }
+        while (ClientSetup.TOGGLE_STATUS.consumeClick()) {
+            ClientHooks.toggleHoveredStatus.run();
+        }
     }
 
     @SubscribeEvent

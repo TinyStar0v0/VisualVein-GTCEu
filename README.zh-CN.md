@@ -5,10 +5,10 @@
 一个面向 **Minecraft 1.20.1 / Forge** 的 **GregTech CEu Modern（GTCEu）** 矿脉辅助模组。
 它把 GTCEu 世界生成中的矿脉信息记录下来，并显示在 **JourneyMap（旅行地图）** 的全屏地图和小地图上。
 
-> **Beta b0.01** —— 首个公开测试版，功能和数据格式仍可能变化。
+> **Beta b0.02** —— 公开测试版，功能和数据格式仍可能变化。
 
 - **模组 ID**：`visualprospecting`（为了兼容旧存档和配置，ID 保持不变）
-- **版本**：`b0.01` Beta
+- **版本**：`b0.02` Beta
 - **前置**：Forge 47.x、GTCEu Modern 1.20.1（1.4.4 及以上）、JourneyMap 1.20.1（仅客户端需要）
 - **JourneyMap 版本**：支持 5.x（API v1，例如 5.10.3）和 6.x（API v2，例如 6.0.7）。
   JourneyMap 6.x 还需要 **Common Networking**（`common-networking-forge-1.20.1`）。
@@ -42,6 +42,8 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
   标记来源和枯竭状态。
 - 地图右侧 **VP** 按钮或 `V` 键打开控制面板，可开关矿脉图层、地图文字、小地图显示、流体矿脉。
 - **右键已标记矿脉**可切换“已枯竭/未枯竭”，状态保存并同步。
+- **双击已标记矿脉或流体矿脉**可创建/移除 JourneyMap 路径点。
+- 鼠标悬停矿脉时按 **Delete** 可直接切换枯竭状态，无需打开右键菜单。
 
 ### 流体矿脉优先级
 
@@ -77,13 +79,14 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 |---|---|
 | `V` | 打开 VP 控制面板 |
 | `B` | 在最近矿脉创建路径点 |
+| `Delete` | 切换鼠标悬停矿脉的枯竭状态 |
 
 ## 安装
 
 1. 安装 Minecraft 1.20.1 + Forge 47.x。
 2. 把 `gtceu-1.20.1-*.jar`、`journeymap-1.20.1-*.jar` 放进 `mods`；
    JourneyMap 6.x 还需 `common-networking-forge-1.20.1-*.jar`。
-3. 把 `visualprospecting-b0.01.jar` 放进 **客户端和服务端** 的 `mods`。
+3. 把 `visualprospecting-b0.02.jar` 放进 **客户端和服务端** 的 `mods`。
 4. 启动游戏，进入世界后手动标记矿脉；打开 JourneyMap 查看。
 
 > 旧存档无需清空：自动扫描会补齐数据，未标记矿脉默认隐藏。
@@ -97,7 +100,7 @@ set JAVA_HOME=C:\Program Files\Java\jdk-17
 gradlew.bat build
 ```
 
-产物在 `build/libs/visualprospecting-b0.01.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
+产物在 `build/libs/visualprospecting-b0.02.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
 已被 `.gitignore` 排除，不会提交到仓库。克隆后需要自行放入对应版本的编译依赖。
 
 ## 实现说明

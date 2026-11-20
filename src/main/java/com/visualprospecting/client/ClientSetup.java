@@ -19,6 +19,8 @@ public final class ClientSetup {
             "key.visualprospecting.toggle_overlay", GLFW.GLFW_KEY_V, "key.categories.visualprospecting");
     public static final KeyMapping CREATE_WAYPOINT = new KeyMapping(
             "key.visualprospecting.create_waypoint", GLFW.GLFW_KEY_B, "key.categories.visualprospecting");
+    public static final KeyMapping TOGGLE_STATUS = new KeyMapping(
+            "key.visualprospecting.toggle_status", GLFW.GLFW_KEY_DELETE, "key.categories.visualprospecting");
 
     private ClientSetup() {
     }
@@ -27,6 +29,7 @@ public final class ClientSetup {
     public static void registerKeys(RegisterKeyMappingsEvent event) {
         event.register(TOGGLE_OVERLAY);
         event.register(CREATE_WAYPOINT);
+        event.register(TOGGLE_STATUS);
     }
 
     @SubscribeEvent
@@ -40,6 +43,7 @@ public final class ClientSetup {
         if (!ModList.get().isLoaded("journeymap")) {
             ClientHooks.toggleOverlay = ClientSetup::noJourneyMap;
             ClientHooks.createWaypoint = ClientSetup::noJourneyMap;
+            ClientHooks.toggleHoveredStatus = ClientSetup::noJourneyMap;
         }
     }
 

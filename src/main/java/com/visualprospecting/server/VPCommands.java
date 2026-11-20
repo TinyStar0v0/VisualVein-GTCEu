@@ -88,7 +88,7 @@ public final class VPCommands {
             return 0;
         }
         Vec3 position = source.getPosition();
-        List<VeinGroup> groups = VeinGroup.group(dimension.all(), false, null);
+        List<VeinGroup> groups = VeinGroup.group(markedVeins(dimension), false, null);
         groups.sort(Comparator.comparingDouble(group -> distanceSq(group.primary(), position)));
         int pages = Math.max(1, (groups.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         int current = Math.min(page, pages);
@@ -112,9 +112,10 @@ public final class VPCommands {
                             .withStyle(ChatFormatting.GRAY))
                     .append(Component.literal(Math.round(Math.sqrt(distanceSq(vein, position))) + "m")
                             .withStyle(ChatFormatting.DARK_AQUA))
-                    .append(Component.literal(group.layers().size() > 1
-                            ? "  +" + (group.layers().size() - 1) + "层" : "")
-                            .withStyle(ChatFormatting.DARK_GRAY));
+                    .append(group.layers().size() > 1
+                            ? Component.translatable("vp.command.list.extra_layers",
+                                    group.layers().size() - 1).withStyle(ChatFormatting.DARK_GRAY)
+                            : Component.empty());
             source.sendSuccess(() -> line, false);
         }
         return 1;
@@ -127,7 +128,7 @@ public final class VPCommands {
             return 0;
         }
         Vec3 position = source.getPosition();
-        List<VeinGroup> groups = VeinGroup.group(dimension.all(), false, null);
+        List<VeinGroup> groups = VeinGroup.group(markedVeins(dimension), false, null);
         groups.sort(Comparator.comparingDouble(group -> distanceSq(group.primary(), position)));
         if (groups.isEmpty()) {
             source.sendFailure(Component.translatable("vp.command.no_data"));
@@ -274,6 +275,16 @@ public final class VPCommands {
     private static VeinWorldData.DimensionVeins dimension(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         return VeinWorldData.get(source.getServer()).dimensionOrNull(level.dimension().location());
+    }
+
+    private static List<VeinRecord> markedVeins(VeinWorldData.DimensionVeins dimension) {
+        List<VeinRecord> result = new ArrayList<>();
+        for (VeinRecord record : dimension.all()) {
+            if (record.marked) {
+                result.add(record);
+            }
+        }
+        return result;
     }
 
     private static double distanceSq(VeinRecord vein, Vec3 position) {

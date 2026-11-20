@@ -24,6 +24,8 @@ public final class ClientHooks {
     };
     public static Runnable toggleFluid = () -> {
     };
+    public static Runnable toggleHoveredStatus = () -> {
+    };
     public static BooleanSupplier overlayEnabled = () -> true;
     public static BooleanSupplier labelsEnabled = () -> true;
     public static BooleanSupplier minimapEnabled = () -> false;

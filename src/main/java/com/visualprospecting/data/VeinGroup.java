@@ -77,11 +77,12 @@ public record VeinGroup(String key, List<VeinRecord> layers, VeinRecord primary)
     public String title() {
         StringBuilder builder = new StringBuilder();
         builder.append(VeinNames.veinName(primary.veinId).getString()).append('\n');
-        builder.append("层级: ").append(VeinNames.layerName(primary.layer).getString())
-                .append("   中心 Y: ").append(primary.centerY).append('\n');
-        builder.append("中心: ").append(primary.centerX).append(", ").append(primary.centerZ).append('\n');
-        builder.append("尺寸参数: ").append(primary.clusterSize)
-                .append("   密度: ").append(Math.round(primary.density * 100.0F)).append("%\n");
+        builder.append(Component.translatable("vp.tooltip.layer_y",
+                VeinNames.layerName(primary.layer).getString(), primary.centerY).getString()).append('\n');
+        builder.append(Component.translatable("vp.tooltip.center",
+                primary.centerX, primary.centerZ).getString()).append('\n');
+        builder.append(Component.translatable("vp.tooltip.size_density",
+                primary.clusterSize, Math.round(primary.density * 100.0F)).getString()).append('\n');
         builder.append(oreLines(primary));
         List<VeinRecord> others = new ArrayList<>();
         for (VeinRecord layer : layers) {
@@ -90,15 +91,16 @@ public record VeinGroup(String key, List<VeinRecord> layers, VeinRecord primary)
             }
         }
         if (!others.isEmpty()) {
-            builder.append("同原点其他层:\n");
+            builder.append(Component.translatable("vp.tooltip.other_layers").getString()).append('\n');
             for (VeinRecord other : others) {
-                builder.append("  ").append(VeinNames.veinName(other.veinId).getString())
-                        .append(" / ").append(VeinNames.layerName(other.layer).getString())
-                        .append(" (Y ").append(other.centerY).append(")\n");
+                builder.append(Component.translatable("vp.tooltip.other_layer_entry",
+                        VeinNames.veinName(other.veinId).getString(),
+                        VeinNames.layerName(other.layer).getString(),
+                        other.centerY).getString()).append('\n');
             }
         }
         if (!primary.surfaceOres.isEmpty()) {
-            builder.append("地表矿: ");
+            builder.append(Component.translatable("vp.tooltip.surface").getString());
             for (int i = 0; i < primary.surfaceOres.size(); i++) {
                 if (i > 0) {
                     builder.append(", ");
@@ -107,21 +109,24 @@ public record VeinGroup(String key, List<VeinRecord> layers, VeinRecord primary)
             }
             builder.append('\n');
         }
-        builder.append("已开采（近似）: ").append(primary.mined).append('\n');
-        builder.append("标记: ").append(primary.marked ? "手动" : "自动")
-                .append("   状态: ").append(primary.depleted ? "已枯竭" : "未枯竭");
+        builder.append(Component.translatable("vp.tooltip.mined", primary.mined).getString()).append('\n');
+        builder.append(Component.translatable("vp.tooltip.mark_status",
+                Component.translatable(primary.marked ? "vp.tooltip.manual" : "vp.tooltip.auto").getString(),
+                Component.translatable(primary.depleted ? "vp.tooltip.depleted" : "vp.tooltip.active").getString())
+                .getString());
         return builder.toString().trim();
     }
 
     private static String oreLines(VeinRecord record) {
         if (record.ores.isEmpty()) {
-            return "矿石组成: 未知\n";
+            return Component.translatable("vp.tooltip.ores_unknown").getString() + "\n";
         }
         int total = 0;
         for (OreEntry ore : record.ores) {
             total += ore.weight;
         }
-        StringBuilder builder = new StringBuilder("矿石组成（权重）:\n");
+        StringBuilder builder = new StringBuilder(
+                Component.translatable("vp.tooltip.ores").getString() + "\n");
         for (OreEntry ore : record.ores) {
             builder.append("  ").append(VeinNames.oreName(ore).getString());
             if (total > 0) {
@@ -137,7 +142,7 @@ public record VeinGroup(String key, List<VeinRecord> layers, VeinRecord primary)
     public String label() {
         String name = VeinNames.veinName(primary.veinId).getString();
         if (primary.depleted) {
-            name += " [枯竭]";
+            name = Component.translatable("vp.label.depleted").getString() + " " + name;
         }
         return name + "\n" + VeinNames.layerName(primary.layer).getString();
     }

@@ -7,17 +7,22 @@ import com.visualprospecting.config.VPConfig;
 import com.visualprospecting.data.FluidVeinRecord;
 import com.visualprospecting.data.VeinRecord;
 import journeymap.api.v2.client.IClientAPI;
+import journeymap.api.v2.client.display.IOverlayListener;
 import journeymap.api.v2.client.display.PolygonOverlay;
 import journeymap.api.v2.client.model.MapPolygon;
 import journeymap.api.v2.client.model.ShapeProperties;
 import journeymap.api.v2.client.model.TextProperties;
 import journeymap.api.v2.client.util.UIState;
 import journeymap.api.v2.common.Context;
+import journeymap.api.v2.common.waypoint.Waypoint;
+import journeymap.api.v2.common.waypoint.WaypointFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -243,16 +248,87 @@ public final class VPFluidOverlayV2 {
             overlay.setActiveUIs(Context.UI.Fullscreen);
         }
         overlay.setTextProperties(text);
+        overlay.setOverlayListener(new IOverlayListener() {
+            @Override
+            public boolean onMouseClick(UIState uiState, java.awt.geom.Point2D.Double mouse, BlockPos pos,
+                                        int button, boolean doubleClick) {
+                if (button == 0 && doubleClick) {
+                    toggleWaypoint(uiState, record, name);
+                    return true;
+                }
+                return false;
+            }
+        });
         return overlay;
+    }
+
+    private static String waypointName(FluidVeinRecord record, String fluidName) {
+        return "VP Fluid: " + fluidName + " [" + record.centerX() + "," + record.centerZ() + "]";
+    }
+
+    @Nullable
+    private static Waypoint findWaypoint(ResourceKey<Level> dimension, String name) {
+        if (api == null || dimension == null) {
+            return null;
+        }
+        try {
+            for (Waypoint waypoint : api.getAllWaypoints(dimension)) {
+                if (name.equals(waypoint.getName())) {
+                    return waypoint;
+                }
+            }
+        } catch (Throwable throwable) {
+            VisualProspecting.LOGGER.debug("Could not list fluid waypoints", throwable);
+        }
+        return null;
+    }
+
+    private static void toggleWaypoint(UIState state, FluidVeinRecord record, String fluidName) {
+        if (api == null || state.dimension == null) {
+            return;
+        }
+        String name = waypointName(record, fluidName);
+        Waypoint existing = findWaypoint(state.dimension, name);
+        Minecraft minecraft = Minecraft.getInstance();
+        try {
+            if (existing != null) {
+                api.removeWaypoint(VisualProspecting.MODID, existing);
+                if (minecraft.player != null) {
+                    minecraft.player.displayClientMessage(
+                            Component.translatable("vp.msg.waypoint_removed", name), false);
+                }
+                return;
+            }
+            Waypoint waypoint = WaypointFactory.createWaypoint(
+                    VisualProspecting.MODID,
+                    new BlockPos(record.centerX(), 64, record.centerZ()),
+                    name,
+                    state.dimension,
+                    true);
+            waypoint.setColor(0x3388CC);
+            waypoint.setShowBeacon(true);
+            api.addWaypoint(VisualProspecting.MODID, waypoint);
+            if (minecraft.player != null) {
+                minecraft.player.displayClientMessage(
+                        Component.translatable("vp.msg.waypoint_created", name), false);
+            }
+        } catch (Throwable throwable) {
+            VisualProspecting.LOGGER.warn("Could not toggle fluid waypoint", throwable);
+        }
     }
 
     private static String title(FluidVeinRecord record, String name) {
         return name + "\n"
-                + "流体矿脉区域: " + record.centerX() + ", " + record.centerZ() + "\n"
-                + "当前产量: " + record.yield() + " L/t\n"
-                + "枯竭产量: " + record.depletedYield() + " L/t\n"
-                + "剩余开采次数: " + record.operations() + " / " + record.maxOperations() + "\n"
-                + "状态: " + (record.depleted() ? "已枯竭" : "可开采");
+                + Component.translatable("vp.fluid.tooltip.region",
+                        record.centerX(), record.centerZ()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.yield", record.yield()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.depleted_yield",
+                        record.depletedYield()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.operations",
+                        record.operations(), record.maxOperations()).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.status",
+                        Component.translatable(record.depleted()
+                                ? "vp.fluid.status.depleted" : "vp.fluid.status.active").getString()).getString();
     }
 
     private static int fluidColor(ResourceLocation id) {

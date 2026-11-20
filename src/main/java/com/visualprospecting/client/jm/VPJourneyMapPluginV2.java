@@ -30,7 +30,9 @@ import journeymap.api.v2.common.waypoint.WaypointFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -75,6 +77,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         ClientHooks.toggleMinimap = () -> VeinOverlayManagerV2.setMinimapEnabled(!VeinOverlayManagerV2.isMinimapEnabled());
         ClientHooks.fluidEnabled = VPFluidOverlayV2::isEnabled;
         ClientHooks.toggleFluid = VPFluidOverlayV2::toggle;
+        ClientHooks.toggleHoveredStatus = VeinOverlayManagerV2::toggleHoveredStatus;
 
         ClientEventRegistry.DISPLAY_UPDATE_EVENT.subscribe(VisualProspecting.MODID, event -> {
             VeinOverlayManagerV2.refresh(event.uiState);
@@ -109,6 +112,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         private static ResourceLocationKey lastDimension;
         private static String lastViewKey = "";
         private static int lastStructureVersion = -1;
+        private static VeinGroup hoveredGroup;
+        private static ResourceLocation hoveredDimension;
 
         private VeinOverlayManagerV2() {
         }
@@ -181,6 +186,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             removeAllOverlays();
             lastDimension = null;
             lastStructureVersion = -1;
+            hoveredGroup = null;
+            hoveredDimension = null;
         }
 
         private static void removeAllOverlays() {
@@ -404,13 +411,40 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             overlay.setTextProperties(text);
             overlay.setOverlayListener(new IOverlayListener() {
                 @Override
+                public void onMouseMove(UIState uiState, java.awt.geom.Point2D.Double mouse, BlockPos pos) {
+                    hoveredGroup = group;
+                    hoveredDimension = uiState.dimension.location();
+                }
+
+                @Override
+                public void onMouseOut(UIState uiState, java.awt.geom.Point2D.Double mouse, BlockPos pos) {
+                    if (hoveredGroup == group) {
+                        hoveredGroup = null;
+                    }
+                }
+
+                @Override
+                public boolean onMouseClick(UIState uiState, java.awt.geom.Point2D.Double mouse, BlockPos pos,
+                                            int button, boolean doubleClick) {
+                    if (button == 0 && doubleClick) {
+                        toggleWaypoint(uiState, group);
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
                 public void onOverlayMenuPopup(UIState uiState, java.awt.geom.Point2D.Double mouse, BlockPos pos,
                                                journeymap.api.v2.client.fullscreen.ModPopupMenu menu) {
-                    menu.addMenuItem(record.depleted ? "标记为未枯竭" : "标记为已枯竭", clicked -> {
+                    menu.addMenuItem(Component.translatable(record.depleted
+                            ? "vp.menu.mark_active" : "vp.menu.mark_depleted").getString(), clicked -> {
                         VPNetwork.sendToServer(new SetVeinStatusPacket(
                                 uiState.dimension.location(), record.key(), !record.depleted));
                     });
-                    menu.addMenuItem("创建矿脉路径点", clicked -> ClientHooks.createWaypoint.run());
+                    boolean hasWaypoint = findWaypoint(uiState.dimension, waypointName(record)) != null;
+                    menu.addMenuItem(Component.translatable(hasWaypoint
+                                    ? "vp.menu.remove_waypoint" : "vp.menu.create_waypoint").getString(),
+                            clicked -> toggleWaypoint(uiState, group));
                 }
             });
             return overlay;
@@ -423,29 +457,113 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             }
             ClientVeinCache.DimensionData data = ClientVeinCache.get(minecraft.level.dimension().location());
             if (data == null || data.size() == 0) {
-                minecraft.player.displayClientMessage(Component.translatable("vp.msg.no_data"), true);
+                message(Component.translatable("vp.msg.no_data"));
                 return;
             }
-            VeinRecord record = data.nearest(minecraft.player.getX(), minecraft.player.getZ());
+            VeinRecord record = null;
+            double best = Double.MAX_VALUE;
+            for (VeinRecord candidate : data.all()) {
+                if (!candidate.marked) {
+                    continue;
+                }
+                double dx = candidate.centerX - minecraft.player.getX();
+                double dz = candidate.centerZ - minecraft.player.getZ();
+                double distance = dx * dx + dz * dz;
+                if (distance < best) {
+                    best = distance;
+                    record = candidate;
+                }
+            }
             if (record == null) {
-                minecraft.player.displayClientMessage(Component.translatable("vp.msg.no_data"), true);
+                message(Component.translatable("vp.msg.no_data"));
                 return;
             }
-            String name = VeinNames.veinName(record.veinId).getString()
-                    + " (" + VeinNames.layerName(record.layer).getString() + ")";
+            String name = waypointName(record);
+            if (findWaypoint(minecraft.level.dimension(), name) != null) {
+                message(Component.translatable("vp.msg.waypoint_exists", name));
+                return;
+            }
+            addWaypoint(minecraft.level.dimension(), record);
+        }
+
+        public static void toggleHoveredStatus() {
+            if (hoveredGroup == null || hoveredDimension == null) {
+                return;
+            }
+            VeinRecord record = hoveredGroup.primary();
+            VPNetwork.sendToServer(new SetVeinStatusPacket(
+                    hoveredDimension, record.key(), !record.depleted));
+            message(Component.translatable(record.depleted ? "vp.msg.restored" : "vp.msg.depleted"));
+        }
+
+        private static String waypointName(VeinRecord record) {
+            return "VP: " + VeinNames.veinName(record.veinId).getString()
+                    + " [" + record.centerX + "," + record.centerZ + "]";
+        }
+
+        @Nullable
+        private static Waypoint findWaypoint(ResourceKey<Level> dimension, String name) {
+            if (api == null || dimension == null) {
+                return null;
+            }
+            try {
+                for (Waypoint waypoint : api.getAllWaypoints(dimension)) {
+                    if (name.equals(waypoint.getName())) {
+                        return waypoint;
+                    }
+                }
+            } catch (Throwable throwable) {
+                VisualProspecting.LOGGER.debug("Could not list JourneyMap waypoints", throwable);
+            }
+            return null;
+        }
+
+        private static boolean addWaypoint(ResourceKey<Level> dimension, VeinRecord record) {
+            if (api == null || dimension == null) {
+                return false;
+            }
+            String name = waypointName(record);
             Waypoint waypoint = WaypointFactory.createWaypoint(
                     VisualProspecting.MODID,
                     new BlockPos(record.centerX, record.centerY, record.centerZ),
                     name,
-                    minecraft.level.dimension(),
+                    dimension,
                     true);
-            waypoint.setColor(0xFFAA00);
+            waypoint.setColor(record.depleted ? 0xAA3333 : 0xFFAA00);
+            waypoint.setShowBeacon(true);
             try {
                 api.addWaypoint(VisualProspecting.MODID, waypoint);
-                minecraft.player.displayClientMessage(
-                        Component.translatable("vp.msg.waypoint_created", name), true);
+                message(Component.translatable("vp.msg.waypoint_created", name));
+                return true;
             } catch (Throwable throwable) {
                 VisualProspecting.LOGGER.warn("Could not create JourneyMap waypoint", throwable);
+                return false;
+            }
+        }
+
+        private static void toggleWaypoint(UIState state, VeinGroup group) {
+            if (api == null || state.dimension == null) {
+                return;
+            }
+            VeinRecord record = group.primary();
+            String name = waypointName(record);
+            Waypoint existing = findWaypoint(state.dimension, name);
+            if (existing != null) {
+                try {
+                    api.removeWaypoint(VisualProspecting.MODID, existing);
+                    message(Component.translatable("vp.msg.waypoint_removed", name));
+                } catch (Throwable throwable) {
+                    VisualProspecting.LOGGER.warn("Could not remove JourneyMap waypoint", throwable);
+                }
+            } else {
+                addWaypoint(state.dimension, record);
+            }
+        }
+
+        private static void message(Component component) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.player != null) {
+                minecraft.player.displayClientMessage(component, false);
             }
         }
 
