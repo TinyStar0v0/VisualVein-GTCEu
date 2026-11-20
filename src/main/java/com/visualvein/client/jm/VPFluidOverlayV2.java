@@ -95,7 +95,10 @@ public final class VPFluidOverlayV2 {
             return;
         }
         UIState state = api.getUIState(Context.UI.Fullscreen);
-        if (state != null) {
+        if (state == null || !state.active) {
+            state = api.getUIState(Context.UI.Minimap);
+        }
+        if (state != null && state.active) {
             refresh(state);
         }
     }
@@ -254,11 +257,7 @@ public final class VPFluidOverlayV2 {
         overlay.setOverlayGroupName("Fluid Veins");
         overlay.setDisplayOrder(90);
         overlay.setActiveMapTypes(Context.MapType.values());
-        if (VPConfig.CLIENT.showOnMinimap().get()) {
-            overlay.setActiveUIs(Context.UI.Fullscreen, Context.UI.Minimap);
-        } else {
-            overlay.setActiveUIs(Context.UI.Fullscreen);
-        }
+        overlay.setActiveUIs(Context.UI.Fullscreen, Context.UI.Minimap);
         overlay.setTextProperties(text);
         overlay.setOverlayListener(new IOverlayListener() {
             @Override

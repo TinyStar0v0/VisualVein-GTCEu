@@ -13,12 +13,12 @@ import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.IClientPlugin;
 import journeymap.api.v2.client.JmApiVersion;
 import journeymap.api.v2.client.display.IOverlayListener;
-import journeymap.api.v2.client.display.PolygonOverlay;
+import journeymap.api.v2.client.display.MarkerOverlay;
+import journeymap.api.v2.client.display.Overlay;
 import journeymap.api.v2.client.fullscreen.IThemeButton;
 import journeymap.api.v2.client.event.DisplayUpdateEvent;
 import journeymap.api.v2.client.event.MappingEvent;
-import journeymap.api.v2.client.model.MapPolygon;
-import journeymap.api.v2.client.model.ShapeProperties;
+import journeymap.api.v2.client.model.MapImage;
 import journeymap.api.v2.client.model.TextProperties;
 import journeymap.api.v2.client.util.UIState;
 import journeymap.api.v2.common.Context;
@@ -28,11 +28,14 @@ import journeymap.api.v2.common.event.FullscreenEventRegistry;
 import journeymap.api.v2.common.waypoint.Waypoint;
 import journeymap.api.v2.common.waypoint.WaypointFactory;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -56,6 +59,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
 
     private static IThemeButton oreButton;
     private static IThemeButton fluidButton;
+    private static IThemeButton noneButton;
 
     @Override
     public String getModId() {
@@ -96,17 +100,15 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         });
         FullscreenEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(VisualVein.MODID, event -> {
             var display = event.getThemeButtonDisplay();
+            // These are radio-style mode selectors: the action always selects its mode, even if
+            // JourneyMap's automatic toggle state is out of sync. The third button clears both.
             oreButton = display.addThemeToggleButton(
                     Component.translatable("vp.button.ore").getString(),
                     new ResourceLocation(VisualVein.MODID, "textures/gui/ore_icon.png"),
                     VeinOverlayManagerV2.isEnabled(),
                     button -> {
-                        if (Boolean.TRUE.equals(button.getToggled())) {
-                            VeinOverlayManagerV2.setEnabled(true);
-                            VPFluidOverlayV2.setEnabled(false);
-                        } else {
-                            VeinOverlayManagerV2.setEnabled(false);
-                        }
+                        VeinOverlayManagerV2.setEnabled(true);
+                        VPFluidOverlayV2.setEnabled(false);
                         syncMapButtons();
                     });
             fluidButton = display.addThemeToggleButton(
@@ -114,12 +116,17 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     new ResourceLocation(VisualVein.MODID, "textures/gui/fluid_icon.png"),
                     VPFluidOverlayV2.isEnabled(),
                     button -> {
-                        if (Boolean.TRUE.equals(button.getToggled())) {
-                            VPFluidOverlayV2.setEnabled(true);
-                            VeinOverlayManagerV2.setEnabled(false);
-                        } else {
-                            VPFluidOverlayV2.setEnabled(false);
-                        }
+                        VPFluidOverlayV2.setEnabled(true);
+                        VeinOverlayManagerV2.setEnabled(false);
+                        syncMapButtons();
+                    });
+            noneButton = display.addThemeToggleButton(
+                    Component.translatable("vp.button.none").getString(),
+                    new ResourceLocation(VisualVein.MODID, "textures/gui/none_icon.png"),
+                    !VeinOverlayManagerV2.isEnabled() && !VPFluidOverlayV2.isEnabled(),
+                    button -> {
+                        VeinOverlayManagerV2.setEnabled(false);
+                        VPFluidOverlayV2.setEnabled(false);
                         syncMapButtons();
                     });
             display.addThemeButton(
@@ -137,11 +144,14 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         if (fluidButton != null) {
             fluidButton.setToggled(VPFluidOverlayV2.isEnabled());
         }
+        if (noneButton != null) {
+            noneButton.setToggled(!VeinOverlayManagerV2.isEnabled() && !VPFluidOverlayV2.isEnabled());
+        }
     }
 
     public static final class VeinOverlayManagerV2 {
 
-        private static final Map<String, PolygonOverlay> SHOWN = new HashMap<>();
+        private static final Map<String, Overlay> SHOWN = new HashMap<>();
         private static final Map<String, String> TITLES = new HashMap<>();
         private static final Map<String, String> STYLES = new HashMap<>();
         private static IClientAPI api;
@@ -165,8 +175,10 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             // Persistent map labels are opt-in: at most zoom levels they overlap the markers and
             // their anchor is the polygon centre, which makes them look shifted downward.
             labelsEnabled = false;
-            minimapEnabled = VPConfig.CLIENT.showOnMinimap().get();
-            lastMinimapEnabled = minimapEnabled;
+            // Discovered veins should appear on the minimap immediately, not only after opening
+            // the fullscreen map. The menu can still turn minimap rendering off.
+            minimapEnabled = true;
+            lastMinimapEnabled = true;
         }
 
         public static boolean isLabelsEnabled() {
@@ -235,7 +247,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
 
         private static void removeAllOverlays() {
             if (api != null) {
-                for (PolygonOverlay overlay : SHOWN.values()) {
+                for (Overlay overlay : SHOWN.values()) {
                     api.remove(overlay);
                 }
             }
@@ -253,10 +265,10 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 return;
             }
             UIState state = api.getUIState(Context.UI.Fullscreen);
-            if (state == null) {
+            if (state == null || !state.active) {
                 state = api.getUIState(Context.UI.Minimap);
             }
-            if (state != null) {
+            if (state != null && state.active) {
                 refresh(state);
             }
         }
@@ -310,8 +322,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             for (VeinGroup group : visible) {
                 keep.add(group.key());
             }
-            for (Iterator<Map.Entry<String, PolygonOverlay>> iterator = SHOWN.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<String, PolygonOverlay> entry = iterator.next();
+            for (Iterator<Map.Entry<String, Overlay>> iterator = SHOWN.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, Overlay> entry = iterator.next();
                 if (!keep.contains(entry.getKey())) {
                     api.remove(entry.getValue());
                     iterator.remove();
@@ -330,7 +342,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         }
 
         private static void showOverlay(UIState state, VeinGroup group) {
-            PolygonOverlay overlay = createOverlay(state, group);
+            Overlay overlay = createOverlay(state, group);
             if (overlay == null) {
                 return;
             }
@@ -349,7 +361,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 return;
             }
             Map<String, VeinGroup> groups = groupMap(data, state);
-            for (Map.Entry<String, PolygonOverlay> entry : SHOWN.entrySet()) {
+            for (Map.Entry<String, Overlay> entry : SHOWN.entrySet()) {
                 VeinGroup group = groups.get(entry.getKey());
                 if (group == null) {
                     continue;
@@ -364,13 +376,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 }
                 String style = styleKey(group.primary());
                 if (!style.equals(STYLES.get(entry.getKey()))) {
-                    entry.getValue().setShapeProperties(shapeFor(group.primary()));
-                    entry.getValue().setDisplayOrder(group.primary().depleted ? 110 : 100);
-                    if (minimapEnabled) {
-                        entry.getValue().setActiveUIs(Context.UI.Fullscreen, Context.UI.Minimap);
-                    } else {
-                        entry.getValue().setActiveUIs(Context.UI.Fullscreen);
-                    }
+                    applyStyle(entry.getValue(), group.primary());
                     STYLES.put(entry.getKey(), style);
                 }
                 entry.getValue().flagForRerender();
@@ -440,42 +446,68 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             return groups;
         }
 
-        private static ShapeProperties shapeFor(VeinRecord record) {
-            int color = record.depleted ? 0x8A2B2B
-                    : (record.ores.isEmpty() ? 0x888888 : record.ores.get(0).color);
-            if (color == 0) {
-                color = 0x888888;
+        private static final Map<String, ResourceLocation> TEXTURE_CACHE = new HashMap<>();
+
+        private static ResourceLocation textureFor(VeinRecord record) {
+            String key = record.ores.isEmpty() ? "" : record.ores.get(0).id;
+            return TEXTURE_CACHE.computeIfAbsent(key, ignored -> resolveTexture(record));
+        }
+
+        private static ResourceLocation resolveTexture(VeinRecord record) {
+            for (com.visualvein.data.OreEntry ore : record.ores) {
+                ResourceLocation blockId = ResourceLocation.tryParse(ore.id);
+                if (blockId == null || !BuiltInRegistries.BLOCK.containsKey(blockId)) {
+                    continue;
+                }
+                try {
+                    Block block = BuiltInRegistries.BLOCK.get(blockId);
+                    TextureAtlasSprite sprite = Minecraft.getInstance().getModelManager()
+                            .getBlockModelShaper().getParticleIcon(block.defaultBlockState());
+                    if (sprite != null) {
+                        ResourceLocation name = sprite.contents().name();
+                        String path = name.getPath();
+                        if (!path.startsWith("textures/")) {
+                            path = "textures/" + path;
+                        }
+                        if (!path.endsWith(".png")) {
+                            path += ".png";
+                        }
+                        return new ResourceLocation(name.getNamespace(), path);
+                    }
+                } catch (Throwable ignored) {
+                    // Fall through to the generic ore icon.
+                }
             }
-            int stroke = record.depleted ? 0xFF5555 : brighten(color);
-            return new ShapeProperties()
-                    .setFillColor(color)
-                    .setFillOpacity(VPConfig.CLIENT.fillOpacity().get().floatValue())
-                    .setStrokeColor(stroke)
-                    .setStrokeOpacity(0.9F)
-                    .setStrokeWidth(record.depleted ? 2.5F : 1.5F);
+            return new ResourceLocation(VisualVein.MODID, "textures/gui/ore_icon.png");
         }
 
         private static String styleKey(VeinRecord record) {
-            int color = record.depleted ? 0x8A2B2B
-                    : (record.ores.isEmpty() ? 0x888888 : record.ores.get(0).color);
-            return (record.depleted ? "D" : "A") + ":" + record.layer + ":" + color
+            return (record.depleted ? "D" : "A") + ":" + textureFor(record)
                     + ":" + (minimapEnabled ? "M" : "F");
         }
 
-        @Nullable
-        private static PolygonOverlay createOverlay(UIState state, VeinGroup group) {
-            VeinRecord record = group.primary();
-            ShapeProperties shape = shapeFor(record);
+        private static void applyStyle(Overlay overlay, VeinRecord record) {
+            if (overlay instanceof MarkerOverlay marker) {
+                MapImage icon = marker.getIcon();
+                icon.setColor(record.depleted ? 0xAA6666 : 0xFFFFFF);
+                marker.setIcon(icon);
+            }
+            overlay.setDisplayOrder(record.depleted ? 110 : 100);
+            if (minimapEnabled) {
+                overlay.setActiveUIs(Context.UI.Fullscreen, Context.UI.Minimap);
+            } else {
+                overlay.setActiveUIs(Context.UI.Fullscreen);
+            }
+        }
 
-            int x = record.centerX;
-            int y = record.centerY;
-            int z = record.centerZ;
-            MapPolygon polygon = new MapPolygon(
-                    new BlockPos(x - 8, y, z - 8),
-                    new BlockPos(x + 8, y, z - 8),
-                    new BlockPos(x + 8, y, z + 8),
-                    new BlockPos(x - 8, y, z + 8)
-            );
+        @Nullable
+        private static Overlay createOverlay(UIState state, VeinGroup group) {
+            VeinRecord record = group.primary();
+            MapImage icon = new MapImage(textureFor(record), 16, 16)
+                    .setDisplayWidth(16)
+                    .setDisplayHeight(16)
+                    .setColor(record.depleted ? 0xAA6666 : 0xFFFFFF);
+            icon.centerAnchors();
 
             TextProperties text = new TextProperties()
                     .setColor(0xFFFFFF)
@@ -486,7 +518,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     .setScale(1.0F);
             text.setActiveMapTypes(Context.MapType.values());
 
-            PolygonOverlay overlay = new PolygonOverlay(VisualVein.MODID, state.dimension, shape, polygon);
+            Overlay overlay = new MarkerOverlay(VisualVein.MODID,
+                    new BlockPos(record.centerX, record.centerY, record.centerZ), icon);
             overlay.setTitle(group.title());
             overlay.setLabel(labelsEnabled ? group.label() : null);
             overlay.setOverlayGroupName("Ore Veins");
@@ -654,13 +687,6 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             if (minecraft.player != null) {
                 minecraft.player.displayClientMessage(component, false);
             }
-        }
-
-        private static int brighten(int color) {
-            int red = Math.min(255, ((color >> 16) & 0xFF) + 48);
-            int green = Math.min(255, ((color >> 8) & 0xFF) + 48);
-            int blue = Math.min(255, (color & 0xFF) + 48);
-            return (red << 16) | (green << 8) | blue;
         }
 
         private record ResourceLocationKey(ResourceLocation location) {

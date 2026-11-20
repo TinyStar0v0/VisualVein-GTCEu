@@ -17,6 +17,7 @@
   "vp.menu.nearest": "Nearest veins:",
   "vp.button.ore": "Ore Veins",
   "vp.button.fluid": "Fluid Veins",
+  "vp.button.none": "Hide Overlays",
   "vp.menu.mark_depleted": "Mark as depleted",
   "vp.menu.mark_active": "Mark as active",
   "vp.menu.create_waypoint": "Create vein waypoint",
@@ -77,7 +78,7 @@
   "vp.dimension.the_nether": "Nether",
   "vp.dimension.the_end": "The End",
 
-  "vp.command.help.header": "VisualVein: GTCEu (Beta b0.06)",
+  "vp.command.help.header": "VisualVein: GTCEu (Beta b0.07)",
   "vp.command.help.list": "/vp list [page] - list discovered veins in this dimension",
   "vp.command.help.nearest": "/vp nearest - details of the nearest vein",
   "vp.command.help.scan": "/vp scan [radius] - scan the GTCEu vein grid around you",

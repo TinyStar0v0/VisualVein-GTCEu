@@ -6,10 +6,10 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **Beta b0.06** — manual fluid discovery and exclusive ore/fluid map modes. Internal Forge version is `0.6.0-beta`; displayed beta name is b0.06.
+> **Beta b0.07** — ore markers now use the actual ore block texture, minimap updates immediately, and the map has Ore/Fluid/Hide-All mode buttons. Internal Forge version is `0.7.0-beta`; displayed beta name is b0.07.
 
 - **Mod ID**: `visualvein`
-- **Version**: `0.6.0-beta` (Beta b0.06)
+- **Version**: `0.7.0-beta` (Beta b0.07)
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
   JourneyMap 6.x also requires **Common Networking** (`common-networking-forge-1.20.1`).
@@ -35,7 +35,8 @@ The prospector sends one summary message. A vein is marked only once, so repeate
 
 ### JourneyMap layer
 
-- Marked veins are drawn as colored 16×16 squares using the primary ore material color.
+- Marked veins are drawn with the **actual ore block texture** as a map marker, instead of a flat color
+  square. If a texture cannot be resolved, a generic ore icon is used.
 - **Layer-aware rendering**: surface/day map shows the stone layer (or netherrack/endstone); the
   underground map picks the layer closest to the observed Y. This prevents a deepslate vein from
   covering the stone vein at the same origin.
@@ -44,8 +45,11 @@ The prospector sends one summary message. A vein is marked only once, so repeate
   They can be enabled in the VP panel; when enabled they are shifted upward.
 - Hover tooltip shows vein name, layer, center, Y, size, density, ore weight percentages, other
   layers at the same origin, surface ores, approximate mined count, mark source, and depletion state.
-- The map toolbar has separate **Ore Veins** and **Fluid Veins** toggle buttons on the right; only one
-  mode is shown at a time. `V`/the VP button opens a small settings panel for labels, minimap and scan.
+- The map toolbar has three mode buttons on the right: **Ore Veins**, **Fluid Veins** and
+  **Hide Overlays**. Only one mode is active at a time; Hide Overlays clears both.
+  `V`/the VP button opens a small settings panel for labels, minimap and scan.
+- Newly marked veins appear on the **minimap immediately**; you do not need to open the fullscreen map
+  first (minimap rendering can be disabled in the settings panel).
 - **Right-click a marked vein** to toggle it between depleted and active; the state is saved and synced.
 - **Double-click a marked vein or fluid field** to create/remove a JourneyMap waypoint.
 - Hover a vein and press **Delete** to toggle its depleted state without opening the popup.
@@ -59,7 +63,7 @@ The prospector sends one summary message. A vein is marked only once, so repeate
   - Right-click bedrock with an **empty hand** to reveal the field under that bedrock.
 - Discovered 8×8-chunk regions are persisted per dimension and synced to the player.
 - The **Fluid Veins** map button switches the layer on and turns the ore layer off; the **Ore Veins**
-  button does the reverse. There is no simultaneous stacking/priority anymore.
+  button does the reverse; **Hide Overlays** turns both off. There is no stacking/priority now.
 
 ### Mining statistics
 
@@ -95,7 +99,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-0.6.0-beta.jar` into **both client and server** `mods/`.
+3. Put `visualvein-0.7.0-beta.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
