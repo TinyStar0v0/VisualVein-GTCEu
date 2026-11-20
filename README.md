@@ -1,3 +1,4 @@
+![](https://github.com/TinyStar0v0/VisualVein-GTCEu/blob/main/639307842200860044.png)
 # VisualVein: GTCEu
 
 [简体中文](README.zh-CN.md)
