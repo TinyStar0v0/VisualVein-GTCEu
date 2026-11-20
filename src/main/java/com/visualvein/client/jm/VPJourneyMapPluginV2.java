@@ -502,20 +502,102 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             return new ResourceLocation(VisualVein.MODID, "textures/gui/ore_icon.png");
         }
 
-        private static MapImage mapImageFor(VeinRecord record) {
+        private static MapImage mapImageFor(VeinRecord record, ResourceLocation dimension) {
             ResourceLocation texture = textureFor(record);
+            ResourceLocation baseTexture = baseTextureFor(record, dimension);
+            int tint = tintFor(record);
+            NativeImage base = loadNative(baseTexture);
+            NativeImage ore = loadNative(texture);
+            if (base != null || ore != null) {
+                NativeImage composite = composeMarker(base, ore, tint);
+                if (base != null) {
+                    base.close();
+                }
+                if (ore != null) {
+                    ore.close();
+                }
+                if (composite != null) {
+                    return new MapImage(composite).setColor(0xFFFFFF);
+                }
+            }
+            return new MapImage(texture, 16, 16).setColor(tint);
+        }
+
+        @Nullable
+        private static NativeImage loadNative(ResourceLocation texture) {
             try {
                 var resource = Minecraft.getInstance().getResourceManager().getResource(texture).orElse(null);
                 if (resource != null) {
                     try (var input = resource.open()) {
-                        NativeImage nativeImage = NativeImage.read(input);
-                        return new MapImage(nativeImage).setColor(tintFor(record));
+                        return NativeImage.read(input);
                     }
                 }
             } catch (Throwable throwable) {
                 VisualVein.LOGGER.debug("Could not load marker texture {}", texture, throwable);
             }
-            return new MapImage(texture, 16, 16).setColor(tintFor(record));
+            return null;
+        }
+
+        @Nullable
+        private static NativeImage composeMarker(@Nullable NativeImage base, @Nullable NativeImage ore, int tint) {
+            try {
+                NativeImage output = new NativeImage(16, 16, false);
+                int tintR = (tint >> 16) & 0xFF;
+                int tintG = (tint >> 8) & 0xFF;
+                int tintB = tint & 0xFF;
+                for (int y = 0; y < 16; y++) {
+                    for (int x = 0; x < 16; x++) {
+                        int basePixel = base == null ? 0 : base.getPixelRGBA(x, y);
+                        int baseA = (basePixel >>> 24) & 0xFF;
+                        int baseR = (basePixel >> 16) & 0xFF;
+                        int baseG = (basePixel >> 8) & 0xFF;
+                        int baseB = basePixel & 0xFF;
+                        if (ore == null) {
+                            output.setPixelRGBA(x, y, basePixel);
+                            continue;
+                        }
+                        int orePixel = ore.getPixelRGBA(x, y);
+                        int oreA = (orePixel >>> 24) & 0xFF;
+                        int oreR = ((orePixel >> 16) & 0xFF) * tintR / 255;
+                        int oreG = ((orePixel >> 8) & 0xFF) * tintG / 255;
+                        int oreB = (orePixel & 0xFF) * tintB / 255;
+                        int alpha = oreA;
+                        int outR = (oreR * alpha + baseR * (255 - alpha)) / 255;
+                        int outG = (oreG * alpha + baseG * (255 - alpha)) / 255;
+                        int outB = (oreB * alpha + baseB * (255 - alpha)) / 255;
+                        int outA = Math.max(255, baseA);
+                        output.setPixelRGBA(x, y, (outA << 24) | (outR << 16) | (outG << 8) | outB);
+                    }
+                }
+                return output;
+            } catch (Throwable throwable) {
+                VisualVein.LOGGER.debug("Could not compose ore marker", throwable);
+                return null;
+            }
+        }
+
+        private static ResourceLocation baseTextureFor(VeinRecord record, ResourceLocation dimension) {
+            for (com.visualvein.data.OreEntry ore : record.ores) {
+                String id = ore.id.toLowerCase();
+                if (id.contains("deepslate")) {
+                    return new ResourceLocation(VisualVein.MODID, "textures/bases/deepslate.png");
+                }
+                if (id.contains("netherrack")) {
+                    return new ResourceLocation(VisualVein.MODID, "textures/bases/netherrack.png");
+                }
+                if (id.contains("end_stone") || id.contains("endstone")) {
+                    return new ResourceLocation(VisualVein.MODID, "textures/bases/end_stone.png");
+                }
+            }
+            String path = dimension.getPath();
+            if (path.contains("nether")) {
+                return new ResourceLocation(VisualVein.MODID, "textures/bases/netherrack.png");
+            }
+            if (path.contains("end")) {
+                return new ResourceLocation(VisualVein.MODID, "textures/bases/end_stone.png");
+            }
+            // Overworld stone, and the default for modded planets/dimensions.
+            return new ResourceLocation(VisualVein.MODID, "textures/bases/stone.png");
         }
 
         private static int tintFor(VeinRecord record) {
@@ -563,7 +645,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         private static void applyStyle(Overlay overlay, VeinRecord record) {
             if (overlay instanceof ImageOverlay image) {
                 MapImage icon = image.getImage();
-                icon.setColor(tintFor(record));
+                // The base stone/deepslate/... and the ore tint are baked into the NativeImage.
+                icon.setColor(0xFFFFFF);
                 image.setImage(icon);
             } else if (overlay instanceof PolygonOverlay polygon) {
                 polygon.setShapeProperties(shapeFor(record));
@@ -581,7 +664,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             VeinRecord record = group.primary();
             Overlay overlay;
             if (textureMode) {
-                MapImage icon = mapImageFor(record);
+                MapImage icon = mapImageFor(record, state.dimension.location());
                 icon.centerAnchors();
                 ImageOverlay image = new ImageOverlay(VisualVein.MODID,
                         new BlockPos(record.centerX - 3, record.centerY, record.centerZ - 3),
