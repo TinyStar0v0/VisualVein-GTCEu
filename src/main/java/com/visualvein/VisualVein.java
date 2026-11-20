@@ -23,6 +23,6 @@ public class VisualVein {
             ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, VPConfig.CLIENT_SPEC);
         }
         VPNetwork.register();
-        LOGGER.info("VisualVein: GTCEu (Beta b0.04) initialised");
+        LOGGER.info("VisualVein: GTCEu (Beta b0.05) initialised");
     }
 }

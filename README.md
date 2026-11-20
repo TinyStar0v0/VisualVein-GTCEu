@@ -6,10 +6,10 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **Beta b0.04** — public beta. The mod ID and Java package are now `visualvein`; old b0.03 data/config is not automatically migrated.
+> **Beta b0.05** — public beta. Internal Forge version is `0.5.0-beta` because Forge requires a numeric version; the displayed beta name is b0.05. The mod ID/package are `visualvein`; old b0.03 data/config is not automatically migrated.
 
 - **Mod ID**: `visualvein`
-- **Version**: `b0.04` beta
+- **Version**: `0.5.0-beta` (Beta b0.05)
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
   JourneyMap 6.x also requires **Common Networking** (`common-networking-forge-1.20.1`).
@@ -94,7 +94,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-b0.04.jar` into **both client and server** `mods/`.
+3. Put `visualvein-0.5.0-beta.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
