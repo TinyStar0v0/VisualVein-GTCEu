@@ -6,6 +6,9 @@
 
   "vp.menu.title": "VisualVein: GTCEu",
   "vp.menu.overlay": "矿脉图层",
+  "vp.menu.marker_style": "标记样式",
+  "vp.menu.texture": "贴图",
+  "vp.menu.color": "纯色",
   "vp.menu.labels": "地图文字",
   "vp.menu.minimap": "小地图显示",
   "vp.menu.fluid": "流体矿脉",
@@ -39,6 +42,8 @@
   "vp.tooltip.active": "未枯竭",
   "vp.label.depleted": "[枯竭]",
 
+  "vp.fluid.tooltip.chunk": "区块: %s, %s",
+  "vp.fluid.tooltip.chunk_yield": "区块产量: %s L/t",
   "vp.fluid.tooltip.region": "流体矿脉区域: %s, %s",
   "vp.fluid.tooltip.yield": "当前产量: %s L/t",
   "vp.fluid.tooltip.depleted_yield": "枯竭产量: %s L/t",
@@ -78,7 +83,7 @@
   "vp.dimension.the_nether": "下界",
   "vp.dimension.the_end": "末地",
 
-  "vp.command.help.header": "VisualVein: GTCEu（Beta b0.07）",
+  "vp.command.help.header": "VisualVein: GTCEu（Beta b0.08）",
   "vp.command.help.list": "/vp list [页码] - 列出当前维度已发现的矿脉",
   "vp.command.help.nearest": "/vp nearest - 查看最近矿脉的详细信息",
   "vp.command.help.scan": "/vp scan [半径] - 扫描身边的 GTCEu 矿脉网格",

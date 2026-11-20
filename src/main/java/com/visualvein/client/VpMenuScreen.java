@@ -20,9 +20,19 @@ public class VpMenuScreen extends Screen {
     protected void init() {
         super.init();
         int left = this.width / 2 - WIDTH / 2;
-        int top = this.height / 2 - 48;
+        int top = this.height / 2 - 60;
         int y = top;
 
+        addRenderableWidget(Button.builder(Component.translatable("vp.menu.marker_style")
+                        .copy()
+                        .append(Component.literal(": "))
+                        .append(Component.translatable(ClientHooks.textureMarkers.getAsBoolean()
+                                ? "vp.menu.texture" : "vp.menu.color")),
+                button -> {
+                    ClientHooks.toggleMarkerStyle.run();
+                    refresh();
+                }).bounds(left, y, WIDTH, 20).build());
+        y += 24;
         addRenderableWidget(Button.builder(label("vp.menu.labels", ClientHooks.labelsEnabled.getAsBoolean()),
                 button -> {
                     ClientHooks.toggleLabels.run();

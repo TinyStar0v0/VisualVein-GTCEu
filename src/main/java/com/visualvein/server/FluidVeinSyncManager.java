@@ -125,9 +125,17 @@ public final class FluidVeinSyncManager {
         if (fluidId == null) {
             return null;
         }
+        int[] yields = new int[REGION_CHUNKS * REGION_CHUNKS];
+        int originChunkX = regionX * REGION_CHUNKS;
+        int originChunkZ = regionZ * REGION_CHUNKS;
+        for (int dx = 0; dx < REGION_CHUNKS; dx++) {
+            for (int dz = 0; dz < REGION_CHUNKS; dz++) {
+                yields[dx * REGION_CHUNKS + dz] = data.getFluidYield(originChunkX + dx, originChunkZ + dz);
+            }
+        }
         return new FluidVeinRecord(regionX, regionZ,
                 chunkX * 16 + 8, chunkZ * 16 + 8,
                 fluidId, entry.getFluidYield(), definition.getDepletedYield(),
-                entry.getOperationsRemaining(), BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
+                entry.getOperationsRemaining(), BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS, yields);
     }
 }

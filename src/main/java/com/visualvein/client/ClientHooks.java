@@ -26,10 +26,13 @@ public final class ClientHooks {
     };
     public static Runnable toggleHoveredStatus = () -> {
     };
+    public static Runnable toggleMarkerStyle = () -> {
+    };
     public static BooleanSupplier overlayEnabled = () -> true;
     public static BooleanSupplier labelsEnabled = () -> true;
     public static BooleanSupplier minimapEnabled = () -> false;
     public static BooleanSupplier fluidEnabled = () -> true;
+    public static BooleanSupplier textureMarkers = () -> true;
 
     private ClientHooks() {
     }

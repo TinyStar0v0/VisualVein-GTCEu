@@ -57,10 +57,13 @@ public final class VPConfig {
         ForgeConfigSpec.BooleanValue showOnlyMarked = client
                 .comment("Only draw ore veins the player has marked by breaking a surface rock/ore block or using a prospector.")
                 .define("showOnlyMarked", true);
+        ForgeConfigSpec.BooleanValue textureMarkers = client
+                .comment("Use ore block textures for map markers instead of flat color squares.")
+                .define("textureMarkers", true);
         client.pop();
         CLIENT_SPEC = client.build();
         CLIENT = new Client(showOverlay, showOnMinimap, showLabels, labelMinZoom, maxOverlays, fillOpacity,
-                showMinedCount, showFluidVeins, showOnlyMarked);
+                showMinedCount, showFluidVeins, showOnlyMarked, textureMarkers);
     }
 
     private VPConfig() {
@@ -80,6 +83,7 @@ public final class VPConfig {
                          ForgeConfigSpec.DoubleValue fillOpacity,
                          ForgeConfigSpec.BooleanValue showMinedCount,
                          ForgeConfigSpec.BooleanValue showFluidVeins,
-                         ForgeConfigSpec.BooleanValue showOnlyMarked) {
+                         ForgeConfigSpec.BooleanValue showOnlyMarked,
+                         ForgeConfigSpec.BooleanValue textureMarkers) {
     }
 }

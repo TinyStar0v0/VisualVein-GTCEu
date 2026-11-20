@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
  */
 public record FluidVeinRecord(int regionX, int regionZ, int centerX, int centerZ,
                               ResourceLocation fluidId, int yield, int depletedYield,
-                              int operations, int maxOperations) {
+                              int operations, int maxOperations, int[] chunkYields) {
 
     public String key() {
         return regionX + ":" + regionZ + ":" + fluidId;
@@ -29,10 +29,27 @@ public record FluidVeinRecord(int regionX, int regionZ, int centerX, int centerZ
         buf.writeVarInt(depletedYield);
         buf.writeVarInt(operations);
         buf.writeVarInt(maxOperations);
+        buf.writeVarInt(chunkYields.length);
+        for (int chunkYield : chunkYields) {
+            buf.writeVarInt(chunkYield);
+        }
     }
 
     public static FluidVeinRecord read(FriendlyByteBuf buf) {
-        return new FluidVeinRecord(buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
-                buf.readResourceLocation(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
+        int regionX = buf.readVarInt();
+        int regionZ = buf.readVarInt();
+        int centerX = buf.readVarInt();
+        int centerZ = buf.readVarInt();
+        ResourceLocation fluidId = buf.readResourceLocation();
+        int yield = buf.readVarInt();
+        int depletedYield = buf.readVarInt();
+        int operations = buf.readVarInt();
+        int maxOperations = buf.readVarInt();
+        int[] yields = new int[buf.readVarInt()];
+        for (int i = 0; i < yields.length; i++) {
+            yields[i] = buf.readVarInt();
+        }
+        return new FluidVeinRecord(regionX, regionZ, centerX, centerZ, fluidId,
+                yield, depletedYield, operations, maxOperations, yields);
     }
 }

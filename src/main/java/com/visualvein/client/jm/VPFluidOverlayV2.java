@@ -2,7 +2,6 @@ package com.visualvein.client.jm;
 
 import com.visualvein.VisualVein;
 import com.visualvein.client.ClientFluidCache;
-import com.visualvein.config.VPConfig;
 import com.visualvein.data.FluidVeinRecord;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.display.IOverlayListener;
@@ -28,9 +27,11 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * JourneyMap 6 overlay for GTCEu bedrock fluid veins. Kept separate from the ore overlay so the two
@@ -159,52 +160,63 @@ public final class VPFluidOverlayV2 {
             double dz = record.centerZ() - cz;
             return dx * dx + dz * dz;
         }));
-        if (records.size() > 120) {
-            records = records.subList(0, 120);
+        if (records.size() > 16) {
+            records = records.subList(0, 16);
         }
 
+        Set<String> keep = new HashSet<>();
+        Map<String, String> desiredTitles = new HashMap<>();
         for (FluidVeinRecord record : records) {
-            if (!SHOWN.containsKey(record.key())) {
-                PolygonOverlay overlay = createOverlay(state, record);
-                if (overlay != null) {
-                    try {
-                        api.show(overlay);
-                        SHOWN.put(record.key(), overlay);
-                        TITLES.put(record.key(), overlay.getTitle());
-                    } catch (Throwable throwable) {
-                        VisualVein.LOGGER.warn("Could not show fluid overlay {}", record.key(), throwable);
-                    }
-                }
-            }
-        }
-        Iterator<Map.Entry<String, PolygonOverlay>> iterator = SHOWN.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, PolygonOverlay> entry = iterator.next();
-            boolean present = records.stream().anyMatch(record -> record.key().equals(entry.getKey()));
-            if (!present) {
-                api.remove(entry.getValue());
-                iterator.remove();
-                TITLES.remove(entry.getKey());
-            }
-        }
-        // Fluid yield/operations are re-synced periodically; update titles without rebuilding.
-        for (FluidVeinRecord record : records) {
-            PolygonOverlay overlay = SHOWN.get(record.key());
-            if (overlay == null) {
-                continue;
-            }
             Fluid fluid = BuiltInRegistries.FLUID.get(record.fluidId());
             if (fluid == null) {
                 continue;
             }
             String name = new FluidStack(fluid, 1).getDisplayName().getString();
-            String title = title(record, name);
-            if (!title.equals(TITLES.get(record.key()))) {
-                overlay.setTitle(title);
-                overlay.flagForRerender();
-                TITLES.put(record.key(), title);
+            int[] yields = record.chunkYields();
+            for (int dx = 0; dx < 8; dx++) {
+                for (int dz = 0; dz < 8; dz++) {
+                    int index = dx * 8 + dz;
+                    int chunkYield = index < yields.length ? yields[index] : record.yield();
+                    String key = tileKey(record, dx, dz);
+                    keep.add(key);
+                    desiredTitles.put(key, title(record, name, dx, dz, chunkYield));
+                    if (!SHOWN.containsKey(key)) {
+                        PolygonOverlay overlay = createOverlay(state, record, dx, dz, name, chunkYield);
+                        if (overlay != null) {
+                            try {
+                                api.show(overlay);
+                                SHOWN.put(key, overlay);
+                                TITLES.put(key, overlay.getTitle());
+                            } catch (Throwable throwable) {
+                                VisualVein.LOGGER.warn("Could not show fluid tile {}", key, throwable);
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        Iterator<Map.Entry<String, PolygonOverlay>> iterator = SHOWN.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, PolygonOverlay> entry = iterator.next();
+            if (!keep.contains(entry.getKey())) {
+                api.remove(entry.getValue());
+                iterator.remove();
+                TITLES.remove(entry.getKey());
+            }
+        }
+        for (Map.Entry<String, PolygonOverlay> entry : SHOWN.entrySet()) {
+            String title = desiredTitles.get(entry.getKey());
+            if (title != null && !title.equals(TITLES.get(entry.getKey()))) {
+                entry.getValue().setTitle(title);
+                entry.getValue().flagForRerender();
+                TITLES.put(entry.getKey(), title);
+            }
+        }
+    }
+
+    private static String tileKey(FluidVeinRecord record, int dx, int dz) {
+        return record.key() + ":" + dx + ":" + dz;
     }
 
     private static boolean inView(UIState state, int x, int z) {
@@ -219,41 +231,38 @@ public final class VPFluidOverlayV2 {
         return Math.abs(x - center.getX()) <= 512 && Math.abs(z - center.getZ()) <= 512;
     }
 
-    private static PolygonOverlay createOverlay(UIState state, FluidVeinRecord record) {
-        Fluid fluid = BuiltInRegistries.FLUID.get(record.fluidId());
-        if (fluid == null) {
-            return null;
-        }
-        String name = new FluidStack(fluid, 1).getDisplayName().getString();
+    private static PolygonOverlay createOverlay(UIState state, FluidVeinRecord record,
+                                                 int dx, int dz, String name, int chunkYield) {
+        int chunkX = record.regionX() * 8 + dx;
+        int chunkZ = record.regionZ() * 8 + dz;
+        int x = chunkX * 16 + 8;
+        int z = chunkZ * 16 + 8;
         int color = fluidColor(record.fluidId());
         ShapeProperties shape = new ShapeProperties()
                 .setFillColor(color)
-                .setFillOpacity(0.32F)
+                .setFillOpacity(0.35F)
                 .setStrokeColor(brighten(color))
-                .setStrokeOpacity(0.9F)
-                .setStrokeWidth(1.5F);
-        int x = record.centerX();
-        int z = record.centerZ();
+                .setStrokeOpacity(0.65F)
+                .setStrokeWidth(0.8F);
         MapPolygon polygon = new MapPolygon(
-                new BlockPos(x - 32, 32, z - 32),
-                new BlockPos(x + 32, 32, z - 32),
-                new BlockPos(x + 32, 32, z + 32),
-                new BlockPos(x - 32, 32, z + 32));
+                new BlockPos(x - 8, 64, z - 8),
+                new BlockPos(x + 8, 64, z - 8),
+                new BlockPos(x + 8, 64, z + 8),
+                new BlockPos(x - 8, 64, z + 8));
 
         TextProperties text = new TextProperties()
                 .setColor(0xFFFFFF)
                 .setBackgroundColor(0x081018)
                 .setBackgroundOpacity(0.55F)
-                .setMinZoom(VPConfig.CLIENT.labelMinZoom().get())
+                .setMinZoom(2)
                 .setOffsetY(-4)
-                .setScale(1.0F);
+                .setScale(0.8F);
         text.setActiveMapTypes(Context.MapType.values());
 
         PolygonOverlay overlay = new PolygonOverlay(VisualVein.MODID, state.dimension, shape, polygon);
-        overlay.setTitle(title(record, name));
-        // The fluid name is already in the hover tooltip; a permanent label only collides with
-        // the adjacent ore marker labels.
-        overlay.setLabel(null);
+        overlay.setTitle(title(record, name, dx, dz, chunkYield));
+        // Show the per-chunk yield when zoomed in; at far zoom the 8x8 grid would be unreadable.
+        overlay.setLabel(chunkYield + " L/t");
         overlay.setOverlayGroupName("Fluid Veins");
         overlay.setDisplayOrder(90);
         overlay.setActiveMapTypes(Context.MapType.values());
@@ -328,11 +337,14 @@ public final class VPFluidOverlayV2 {
         }
     }
 
-    private static String title(FluidVeinRecord record, String name) {
+    private static String title(FluidVeinRecord record, String name, int dx, int dz, int chunkYield) {
+        int chunkX = record.regionX() * 8 + dx;
+        int chunkZ = record.regionZ() * 8 + dz;
         return name + "\n"
+                + Component.translatable("vp.fluid.tooltip.chunk", chunkX, chunkZ).getString() + "\n"
+                + Component.translatable("vp.fluid.tooltip.chunk_yield", chunkYield).getString() + "\n"
                 + Component.translatable("vp.fluid.tooltip.region",
                         record.centerX(), record.centerZ()).getString() + "\n"
-                + Component.translatable("vp.fluid.tooltip.yield", record.yield()).getString() + "\n"
                 + Component.translatable("vp.fluid.tooltip.depleted_yield",
                         record.depletedYield()).getString() + "\n"
                 + Component.translatable("vp.fluid.tooltip.operations",
