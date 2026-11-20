@@ -6,10 +6,10 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **Beta b0.02** — public beta. Features and data formats may still change.
+> **Beta b0.03** — public beta. Features and data formats may still change.
 
 - **Mod ID**: `visualprospecting` (kept unchanged for world/config compatibility)
-- **Version**: `b0.02` beta
+- **Version**: `b0.03` beta
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
   JourneyMap 6.x also requires **Common Networking** (`common-networking-forge-1.20.1`).
@@ -49,6 +49,8 @@ The prospector sends one summary message. A vein is marked only once, so repeate
 - **Right-click a marked vein** to toggle it between depleted and active; the state is saved and synced.
 - **Double-click a marked vein or fluid field** to create/remove a JourneyMap waypoint.
 - Hover a vein and press **Delete** to toggle its depleted state without opening the popup.
+- The VP panel no longer lists nearby veins; use `B`, double-click or `/vpwaypoint` instead.
+- Created overlays are cached across map close/reopen, so the layer appears much faster on reopen.
 
 ### Fluid veins and ore priority
 
@@ -92,7 +94,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualprospecting-b0.02.jar` into **both client and server** `mods/`.
+3. Put `visualprospecting-b0.03.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay

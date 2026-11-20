@@ -12,7 +12,6 @@ import com.visualprospecting.network.VPNetwork;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.IClientPlugin;
 import journeymap.api.v2.client.JmApiVersion;
-import journeymap.api.v2.client.display.DisplayType;
 import journeymap.api.v2.client.display.IOverlayListener;
 import journeymap.api.v2.client.display.PolygonOverlay;
 import journeymap.api.v2.client.event.DisplayUpdateEvent;
@@ -84,10 +83,9 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             VPFluidOverlayV2.refresh(event.uiState);
         });
         ClientEventRegistry.MAPPING_EVENT.subscribe(VisualProspecting.MODID, event -> {
-            if (event.getStage() == MappingEvent.Stage.MAPPING_STOPPED) {
-                VeinOverlayManagerV2.clear();
-                VPFluidOverlayV2.clear();
-            } else {
+            // Keep the created overlays cached. MAPPING_STOPPED is also fired around normal map
+            // view changes; discarding everything there forced a full rebuild on every reopen.
+            if (event.getStage() != MappingEvent.Stage.MAPPING_STOPPED) {
                 VeinOverlayManagerV2.markDirty();
                 VPFluidOverlayV2.markDirty();
             }
@@ -105,6 +103,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
 
         private static final Map<String, PolygonOverlay> SHOWN = new HashMap<>();
         private static final Map<String, String> TITLES = new HashMap<>();
+        private static final Map<String, String> STYLES = new HashMap<>();
         private static IClientAPI api;
         private static boolean enabled = true;
         private static boolean labelsEnabled = true;
@@ -112,6 +111,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         private static ResourceLocationKey lastDimension;
         private static String lastViewKey = "";
         private static int lastStructureVersion = -1;
+        private static int lastDataVersion = -1;
+        private static boolean lastMinimapEnabled;
         private static VeinGroup hoveredGroup;
         private static ResourceLocation hoveredDimension;
 
@@ -125,6 +126,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             // their anchor is the polygon centre, which makes them look shifted downward.
             labelsEnabled = false;
             minimapEnabled = VPConfig.CLIENT.showOnMinimap().get();
+            lastMinimapEnabled = minimapEnabled;
         }
 
         public static boolean isLabelsEnabled() {
@@ -186,20 +188,28 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             removeAllOverlays();
             lastDimension = null;
             lastStructureVersion = -1;
+            lastDataVersion = -1;
             hoveredGroup = null;
             hoveredDimension = null;
         }
 
         private static void removeAllOverlays() {
             if (api != null) {
-                api.removeAll(VisualProspecting.MODID, DisplayType.Polygon);
+                for (PolygonOverlay overlay : SHOWN.values()) {
+                    api.remove(overlay);
+                }
             }
             SHOWN.clear();
             TITLES.clear();
+            STYLES.clear();
         }
 
         private static void refreshCurrent() {
             if (api == null) {
+                return;
+            }
+            if (Minecraft.getInstance().level == null) {
+                clear();
                 return;
             }
             UIState state = api.getUIState(Context.UI.Fullscreen);
@@ -215,8 +225,17 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             if (api == null) {
                 return;
             }
-            if (!enabled || state == null || !state.active || state.dimension == null) {
+            if (!enabled) {
                 removeAllOverlays();
+                return;
+            }
+            // Keep overlays cached while the map is closed. Rebuilding every overlay on open was
+            // the main cause of the visible delay before the layer appeared.
+            if (state == null || !state.active || state.dimension == null) {
+                return;
+            }
+            if (Minecraft.getInstance().level == null) {
+                clear();
                 return;
             }
             ClientVeinCache.DimensionData data = ClientVeinCache.get(state.dimension.location());
@@ -230,18 +249,22 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             boolean dimensionChanged = !current.equals(lastDimension);
             boolean viewChanged = !viewKey.equals(lastViewKey);
             boolean structureChanged = data.structureVersion() != lastStructureVersion;
-            if (dimensionChanged || structureChanged || viewChanged) {
-                lastDimension = current;
-                lastViewKey = viewKey;
-                lastStructureVersion = data.structureVersion();
+            boolean dataChanged = data.version() != lastDataVersion;
+            boolean minimapChanged = minimapEnabled != lastMinimapEnabled;
+            if (dimensionChanged) {
                 removeAllOverlays();
-                syncVisible(state, data);
-            } else {
-                syncVisible(state, data);
             }
+            lastDimension = current;
+            lastViewKey = viewKey;
+            lastStructureVersion = data.structureVersion();
+            lastDataVersion = data.version();
+            lastMinimapEnabled = minimapEnabled;
+            syncVisible(state, data, dimensionChanged || viewChanged || structureChanged
+                    || dataChanged || minimapChanged);
         }
 
-        private static void syncVisible(UIState state, ClientVeinCache.DimensionData data) {
+        private static void syncVisible(UIState state, ClientVeinCache.DimensionData data,
+                                        boolean refreshText) {
             List<VeinGroup> visible = visibleGroups(state, data);
             Set<String> keep = new HashSet<>();
             for (VeinGroup group : visible) {
@@ -253,6 +276,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     api.remove(entry.getValue());
                     iterator.remove();
                     TITLES.remove(entry.getKey());
+                    STYLES.remove(entry.getKey());
                 }
             }
             for (VeinGroup group : visible) {
@@ -260,7 +284,9 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     showOverlay(state, group);
                 }
             }
-            updateTitles(data, state);
+            if (refreshText) {
+                updateTitles(data, state);
+            }
         }
 
         private static void showOverlay(UIState state, VeinGroup group) {
@@ -272,6 +298,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 api.show(overlay);
                 SHOWN.put(group.key(), overlay);
                 TITLES.put(group.key(), group.title());
+                STYLES.put(group.key(), styleKey(group.primary()));
             } catch (Throwable throwable) {
                 VisualProspecting.LOGGER.warn("Could not show JourneyMap overlay {}", group.key(), throwable);
             }
@@ -293,9 +320,20 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                         || !java.util.Objects.equals(label, entry.getValue().getLabel())) {
                     entry.getValue().setTitle(title);
                     entry.getValue().setLabel(label);
-                    entry.getValue().flagForRerender();
                     TITLES.put(entry.getKey(), title);
                 }
+                String style = styleKey(group.primary());
+                if (!style.equals(STYLES.get(entry.getKey()))) {
+                    entry.getValue().setShapeProperties(shapeFor(group.primary()));
+                    entry.getValue().setDisplayOrder(group.primary().depleted ? 110 : 100);
+                    if (minimapEnabled) {
+                        entry.getValue().setActiveUIs(Context.UI.Fullscreen, Context.UI.Minimap);
+                    } else {
+                        entry.getValue().setActiveUIs(Context.UI.Fullscreen);
+                    }
+                    STYLES.put(entry.getKey(), style);
+                }
+                entry.getValue().flagForRerender();
             }
         }
 
@@ -362,21 +400,32 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             return groups;
         }
 
-        @Nullable
-        private static PolygonOverlay createOverlay(UIState state, VeinGroup group) {
-            VeinRecord record = group.primary();
+        private static ShapeProperties shapeFor(VeinRecord record) {
             int color = record.depleted ? 0x8A2B2B
                     : (record.ores.isEmpty() ? 0x888888 : record.ores.get(0).color);
             if (color == 0) {
                 color = 0x888888;
             }
             int stroke = record.depleted ? 0xFF5555 : brighten(color);
-            ShapeProperties shape = new ShapeProperties()
+            return new ShapeProperties()
                     .setFillColor(color)
                     .setFillOpacity(VPConfig.CLIENT.fillOpacity().get().floatValue())
                     .setStrokeColor(stroke)
                     .setStrokeOpacity(0.9F)
                     .setStrokeWidth(record.depleted ? 2.5F : 1.5F);
+        }
+
+        private static String styleKey(VeinRecord record) {
+            int color = record.depleted ? 0x8A2B2B
+                    : (record.ores.isEmpty() ? 0x888888 : record.ores.get(0).color);
+            return (record.depleted ? "D" : "A") + ":" + record.layer + ":" + color
+                    + ":" + (minimapEnabled ? "M" : "F");
+        }
+
+        @Nullable
+        private static PolygonOverlay createOverlay(UIState state, VeinGroup group) {
+            VeinRecord record = group.primary();
+            ShapeProperties shape = shapeFor(record);
 
             int x = record.centerX;
             int y = record.centerY;

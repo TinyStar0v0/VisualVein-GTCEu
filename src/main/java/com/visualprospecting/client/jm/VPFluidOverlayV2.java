@@ -41,6 +41,7 @@ import java.util.Map;
 public final class VPFluidOverlayV2 {
 
     private static final Map<String, PolygonOverlay> SHOWN = new HashMap<>();
+    private static final Map<String, String> TITLES = new HashMap<>();
     private static IClientAPI api;
     private static boolean enabled = true;
     private static long lastVersion = -1;
@@ -90,6 +91,10 @@ public final class VPFluidOverlayV2 {
         if (api == null) {
             return;
         }
+        if (Minecraft.getInstance().level == null) {
+            clear();
+            return;
+        }
         UIState state = api.getUIState(Context.UI.Fullscreen);
         if (state != null) {
             refresh(state);
@@ -109,24 +114,34 @@ public final class VPFluidOverlayV2 {
             }
         }
         SHOWN.clear();
+        TITLES.clear();
     }
 
     public static void refresh(@Nullable UIState state) {
         if (api == null) {
             return;
         }
-        if (!enabled || state == null || !state.active || state.dimension == null) {
+        if (!enabled) {
             removeAll();
+            return;
+        }
+        // Cached overlays survive map close/reopen; only remove them when the feature is disabled
+        // or the data/dimension actually changes.
+        if (state == null || !state.active || state.dimension == null) {
+            return;
+        }
+        if (Minecraft.getInstance().level == null) {
+            clear();
             return;
         }
         ResourceLocation dimension = state.dimension.location();
         long version = ClientFluidCache.version();
         boolean dimensionChanged = !dimension.toString().equals(lastDimension);
-        if (dimensionChanged || version != lastVersion) {
-            lastDimension = dimension.toString();
-            lastVersion = version;
+        if (dimensionChanged) {
             removeAll();
         }
+        lastDimension = dimension.toString();
+        lastVersion = version;
 
         List<FluidVeinRecord> records = new ArrayList<>();
         for (FluidVeinRecord record : ClientFluidCache.get(dimension)) {
@@ -158,6 +173,7 @@ public final class VPFluidOverlayV2 {
                     try {
                         api.show(overlay);
                         SHOWN.put(record.key(), overlay);
+                        TITLES.put(record.key(), overlay.getTitle());
                     } catch (Throwable throwable) {
                         VisualProspecting.LOGGER.warn("Could not show fluid overlay {}", record.key(), throwable);
                     }
@@ -171,6 +187,25 @@ public final class VPFluidOverlayV2 {
             if (!present) {
                 api.remove(entry.getValue());
                 iterator.remove();
+                TITLES.remove(entry.getKey());
+            }
+        }
+        // Fluid yield/operations are re-synced periodically; update titles without rebuilding.
+        for (FluidVeinRecord record : records) {
+            PolygonOverlay overlay = SHOWN.get(record.key());
+            if (overlay == null) {
+                continue;
+            }
+            Fluid fluid = BuiltInRegistries.FLUID.get(record.fluidId());
+            if (fluid == null) {
+                continue;
+            }
+            String name = new FluidStack(fluid, 1).getDisplayName().getString();
+            String title = title(record, name);
+            if (!title.equals(TITLES.get(record.key()))) {
+                overlay.setTitle(title);
+                overlay.flagForRerender();
+                TITLES.put(record.key(), title);
             }
         }
     }
