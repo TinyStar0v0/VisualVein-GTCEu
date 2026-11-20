@@ -1,7 +1,7 @@
 # VisualVein: GTCEu
 
 [简体中文](README.zh-CN.md)
-[![CodeFactor](https://www.codefactor.io/repository/github/tinystar0v0/visual-prospecting-gtceu/badge)](https://www.codefactor.io/repository/github/tinystar0v0/visual-prospecting-gtceu)
+[![CodeFactor](https://www.codefactor.io/repository/github/tinystar0v0/visualvein-gtceu/badge)](https://www.codefactor.io/repository/github/tinystar0v0/visualvein-gtceu)
 
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
