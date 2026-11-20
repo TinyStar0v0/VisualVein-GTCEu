@@ -1,4 +1,4 @@
-# Visual Prospecting: GTCEu
+# VisualVein: GTCEu
 
 [简体中文](README.zh-CN.md)
 [![CodeFactor](https://www.codefactor.io/repository/github/tinystar0v0/visual-prospecting-gtceu/badge)](https://www.codefactor.io/repository/github/tinystar0v0/visual-prospecting-gtceu)
