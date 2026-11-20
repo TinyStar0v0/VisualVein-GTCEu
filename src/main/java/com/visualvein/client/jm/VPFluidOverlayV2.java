@@ -160,13 +160,13 @@ public final class VPFluidOverlayV2 {
             double dz = record.centerZ() - cz;
             return dx * dx + dz * dz;
         }));
-        if (records.size() > 16) {
-            records = records.subList(0, 16);
+        if (records.size() > 8) {
+            records = records.subList(0, 8);
         }
 
         // At far zoom (and on the minimap) use one region polygon. Only split into 64 chunk
         // tiles at close fullscreen zoom; otherwise the overlay and text count destroys FPS.
-        boolean perChunk = state.ui == Context.UI.Fullscreen && state.zoom >= 1024;
+        boolean perChunk = state.ui == Context.UI.Fullscreen && state.zoom >= 4096;
         Set<String> keep = new HashSet<>();
         Map<String, String> desiredTitles = new HashMap<>();
         for (FluidVeinRecord record : records) {
@@ -320,9 +320,9 @@ public final class VPFluidOverlayV2 {
                 .setColor(0xFFFFFF)
                 .setBackgroundColor(0x081018)
                 .setBackgroundOpacity(0.55F)
-                .setMinZoom(1024)
+                .setMinZoom(4096)
                 .setOffsetY(-4)
-                .setScale(0.35F);
+                .setScale(0.12F);
         text.setActiveMapTypes(Context.MapType.values());
         // Keep the minimap clean and readable: yields only appear in the fullscreen map.
         text.setActiveUIs(Context.UI.Fullscreen);

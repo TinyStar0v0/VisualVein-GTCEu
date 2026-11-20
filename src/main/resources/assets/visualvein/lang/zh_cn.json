@@ -84,7 +84,7 @@
   "vp.dimension.the_nether": "下界",
   "vp.dimension.the_end": "末地",
 
-  "vp.command.help.header": "VisualVein: GTCEu（Beta b0.10）",
+  "vp.command.help.header": "VisualVein: GTCEu（Beta b0.11）",
   "vp.command.help.list": "/vp list [页码] - 列出当前维度已发现的矿脉",
   "vp.command.help.nearest": "/vp nearest - 查看最近矿脉的详细信息",
   "vp.command.help.scan": "/vp scan [半径] - 扫描身边的 GTCEu 矿脉网格",
