@@ -5,11 +5,11 @@
 一个面向 **Minecraft 1.20.1 / Forge** 的 **GregTech CEu Modern（GTCEu）** 矿脉辅助模组。
 它把 GTCEu 世界生成中的矿脉信息记录下来，并显示在 **JourneyMap（旅行地图）** 的全屏地图和小地图上。
 
-> **Beta b0.11** —— 流体产量文字更小且只在大地图显示；矿脉改用图片覆盖层，VP 菜单可切换贴图/纯色；
-> 小地图即时更新。Forge 内部版本是 `0.11.0-beta`，界面/发布名仍叫 b0.11。
+> **Beta b0.12** —— 流体产量文字更小且只在大地图显示；矿脉改用图片覆盖层，VP 菜单可切换贴图/纯色；
+> 小地图即时更新。Forge 内部版本是 `0.12.0-beta`，界面/发布名仍叫 b0.12。
 
 - **模组 ID**：`visualvein`
-- **版本**：`0.11.0-beta`（Beta b0.11）
+- **版本**：`0.12.0-beta`（Beta b0.12）
 - **前置**：Forge 47.x、GTCEu Modern 1.20.1（1.4.4 及以上）、JourneyMap 1.20.1（仅客户端需要）
 - **JourneyMap 版本**：支持 5.x（API v1，例如 5.10.3）和 6.x（API v2，例如 6.0.7）。
   JourneyMap 6.x 还需要 **Common Networking**（`common-networking-forge-1.20.1`）。
@@ -33,7 +33,7 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 
 ### JourneyMap 地图图层
 
-- 贴图模式改用非持久 JourneyMap 路径点图标来显示预打包的 GT 矿石贴图（JourneyMap 6.0.7 在此整合包中会静默忽略 ImageOverlay/MarkerOverlay）；VP 菜单可切换**贴图 / 纯色**，纯色是可靠的方块回退。
+- 已标记矿脉使用预先打包的 GT 矿石贴图，以 ImageOverlay 渲染，并显式设置所属维度（JourneyMap API 要求）；VP 菜单可切换**贴图 / 纯色**，纯色是可靠的方块回退。
 - **按层选择**：地表/白天地图显示石头层（或下界岩/末地石层），地下地图根据观察 Y 选择最接近的层，
   避免深板岩矿脉盖住地表矿脉。
 - **不再绘制地表碎矿的额外标记圈**；地表碎矿材料只保留在悬停详情中。
@@ -93,7 +93,7 @@ GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不�
 1. 安装 Minecraft 1.20.1 + Forge 47.x。
 2. 把 `gtceu-1.20.1-*.jar`、`journeymap-1.20.1-*.jar` 放进 `mods`；
    JourneyMap 6.x 还需 `common-networking-forge-1.20.1-*.jar`。
-3. 把 `visualvein-0.11.0-beta.jar` 放进 **客户端和服务端** 的 `mods`。
+3. 把 `visualvein-0.12.0-beta.jar` 放进 **客户端和服务端** 的 `mods`。
 4. 启动游戏，进入世界后手动标记矿脉；打开 JourneyMap 查看。
 
 > 旧存档无需清空：自动扫描会补齐数据，未标记矿脉默认隐藏。
@@ -107,7 +107,7 @@ set JAVA_HOME=C:\Program Files\Java\jdk-17
 gradlew.bat build
 ```
 
-产物在 `build/libs/visualvein-0.11.0-beta.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
+产物在 `build/libs/visualvein-0.12.0-beta.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
 已被 `.gitignore` 排除，不会提交到仓库。克隆后需要自行放入对应版本的编译依赖。
 
 ## 实现说明

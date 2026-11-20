@@ -162,7 +162,6 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         private static final Map<String, Overlay> SHOWN = new HashMap<>();
         private static final Map<String, String> TITLES = new HashMap<>();
         private static final Map<String, String> STYLES = new HashMap<>();
-        private static final Map<String, Waypoint> TEXTURE_MARKERS = new HashMap<>();
         private static IClientAPI api;
         private static boolean enabled = true;
         private static boolean labelsEnabled = true;
@@ -279,12 +278,6 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             SHOWN.clear();
             TITLES.clear();
             STYLES.clear();
-            if (api != null) {
-                for (Waypoint waypoint : TEXTURE_MARKERS.values()) {
-                    api.removeWaypoint(VisualVein.MODID, waypoint);
-                }
-            }
-            TEXTURE_MARKERS.clear();
         }
 
         private static void refreshCurrent() {
@@ -346,66 +339,9 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     || dataChanged || minimapChanged);
         }
 
-        private static void syncTextureWaypoints(UIState state, List<VeinGroup> visible) {
-            if (api == null || state.dimension == null) {
-                return;
-            }
-            Set<String> keep = new HashSet<>();
-            for (VeinGroup group : visible) {
-                VeinRecord record = group.primary();
-                keep.add(group.key());
-                Waypoint waypoint = TEXTURE_MARKERS.get(group.key());
-                if (waypoint == null) {
-                    String name = "VP: " + VeinNames.veinName(record.veinId).getString()
-                            + " [" + record.centerX + "," + record.centerZ + "]";
-                    waypoint = WaypointFactory.createWaypoint(
-                            VisualVein.MODID,
-                            new BlockPos(record.centerX, record.centerY, record.centerZ),
-                            name,
-                            state.dimension,
-                            false);
-                    waypoint.setIconIdentifier(textureFor(record));
-                    waypoint.setIconTextureSize(16, 16);
-                    waypoint.setShowInWorld(false);
-                    waypoint.setShowOnMap(true);
-                    waypoint.setShowLabel(false);
-                    waypoint.setPersistent(false);
-                    try {
-                        api.addWaypoint(VisualVein.MODID, waypoint);
-                        TEXTURE_MARKERS.put(group.key(), waypoint);
-                    } catch (Throwable throwable) {
-                        VisualVein.LOGGER.warn("Could not create texture marker waypoint", throwable);
-                    }
-                }
-                waypoint.setIconColor(tintFor(record));
-                waypoint.setColor(tintFor(record));
-            }
-            Iterator<Map.Entry<String, Waypoint>> iterator = TEXTURE_MARKERS.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, Waypoint> entry = iterator.next();
-                if (!keep.contains(entry.getKey())) {
-                    api.removeWaypoint(VisualVein.MODID, entry.getValue());
-                    iterator.remove();
-                }
-            }
-        }
-
         private static void syncVisible(UIState state, ClientVeinCache.DimensionData data,
                                         boolean refreshText) {
             List<VeinGroup> visible = visibleGroups(state, data);
-            if (textureMode) {
-                // JourneyMap 6.0.7 silently drops ImageOverlay/MarkerOverlay in this pack.
-                // Non-persistent waypoint icons are the reliable way to show the ore texture.
-                if (!SHOWN.isEmpty()) {
-                    removeAllOverlays();
-                }
-                syncTextureWaypoints(state, visible);
-                return;
-            }
-            for (Waypoint waypoint : TEXTURE_MARKERS.values()) {
-                api.removeWaypoint(VisualVein.MODID, waypoint);
-            }
-            TEXTURE_MARKERS.clear();
             Set<String> keep = new HashSet<>();
             for (VeinGroup group : visible) {
                 keep.add(group.key());
@@ -646,10 +582,13 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             Overlay overlay;
             if (textureMode) {
                 MapImage icon = mapImageFor(record);
-                overlay = new ImageOverlay(VisualVein.MODID,
-                        new BlockPos(record.centerX - 8, record.centerY, record.centerZ - 8),
-                        new BlockPos(record.centerX + 8, record.centerY, record.centerZ + 8),
+                icon.centerAnchors();
+                ImageOverlay image = new ImageOverlay(VisualVein.MODID,
+                        new BlockPos(record.centerX - 3, record.centerY, record.centerZ - 3),
+                        new BlockPos(record.centerX + 3, record.centerY, record.centerZ + 3),
                         icon);
+                image.setDimension(state.dimension);
+                overlay = image;
             } else {
                 int x = record.centerX;
                 int y = record.centerY;
