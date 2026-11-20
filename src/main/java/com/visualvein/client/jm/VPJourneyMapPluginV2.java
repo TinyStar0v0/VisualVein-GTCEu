@@ -16,7 +16,7 @@ import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.IClientPlugin;
 import journeymap.api.v2.client.JmApiVersion;
 import journeymap.api.v2.client.display.IOverlayListener;
-import journeymap.api.v2.client.display.MarkerOverlay;
+import journeymap.api.v2.client.display.ImageOverlay;
 import journeymap.api.v2.client.display.Overlay;
 import journeymap.api.v2.client.display.PolygonOverlay;
 import journeymap.api.v2.client.fullscreen.IThemeButton;
@@ -544,10 +544,10 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         }
 
         private static void applyStyle(Overlay overlay, VeinRecord record) {
-            if (overlay instanceof MarkerOverlay marker) {
-                MapImage icon = marker.getIcon();
+            if (overlay instanceof ImageOverlay image) {
+                MapImage icon = image.getImage();
                 icon.setColor(tintFor(record));
-                marker.setIcon(icon);
+                image.setImage(icon);
             } else if (overlay instanceof PolygonOverlay polygon) {
                 polygon.setShapeProperties(shapeFor(record));
             }
@@ -565,12 +565,11 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             Overlay overlay;
             if (textureMode) {
                 MapImage icon = new MapImage(textureFor(record), 16, 16)
-                        .setDisplayWidth(24)
-                        .setDisplayHeight(24)
                         .setColor(tintFor(record));
-                icon.centerAnchors();
-                overlay = new MarkerOverlay(VisualVein.MODID,
-                        new BlockPos(record.centerX, record.centerY, record.centerZ), icon);
+                overlay = new ImageOverlay(VisualVein.MODID,
+                        new BlockPos(record.centerX - 8, record.centerY, record.centerZ - 8),
+                        new BlockPos(record.centerX + 8, record.centerY, record.centerZ + 8),
+                        icon);
             } else {
                 int x = record.centerX;
                 int y = record.centerY;

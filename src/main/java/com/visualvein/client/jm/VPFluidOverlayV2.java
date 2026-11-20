@@ -254,10 +254,12 @@ public final class VPFluidOverlayV2 {
                 .setColor(0xFFFFFF)
                 .setBackgroundColor(0x081018)
                 .setBackgroundOpacity(0.55F)
-                .setMinZoom(2)
+                .setMinZoom(3)
                 .setOffsetY(-4)
-                .setScale(0.8F);
+                .setScale(0.55F);
         text.setActiveMapTypes(Context.MapType.values());
+        // Keep the minimap clean and readable: yields only appear in the fullscreen map.
+        text.setActiveUIs(Context.UI.Fullscreen);
 
         PolygonOverlay overlay = new PolygonOverlay(VisualVein.MODID, state.dimension, shape, polygon);
         overlay.setTitle(title(record, name, dx, dz, chunkYield));

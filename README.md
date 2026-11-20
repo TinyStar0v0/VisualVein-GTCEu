@@ -6,10 +6,10 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **Beta b0.08** — fluid fields are tiled 8×8 chunks with per-chunk yields, ore markers support texture/color switching, and minimap updates immediately. Internal Forge version is `0.8.0-beta`; displayed beta name is b0.08.
+> **Beta b0.09** — fluid text is smaller and fullscreen-only, ore markers now use image overlays with a texture/color switch, and minimap updates immediately. Internal Forge version is `0.9.0-beta`; displayed beta name is b0.09.
 
 - **Mod ID**: `visualvein`
-- **Version**: `0.8.0-beta` (Beta b0.08)
+- **Version**: `0.9.0-beta` (Beta b0.09)
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
   JourneyMap 6.x also requires **Common Networking** (`common-networking-forge-1.20.1`).
@@ -35,8 +35,8 @@ The prospector sends one summary message. A vein is marked only once, so repeate
 
 ### JourneyMap layer
 
-- Marked veins are drawn with the **actual ore block texture** as a map marker, instead of a flat color
-  square. If a texture cannot be resolved, a generic ore icon is used.
+- Marked veins use pre-packed GT ore textures rendered as image overlays; the VP menu can switch between
+  **Texture** and **Color** marker styles. Color is a reliable fallback if a texture is not available.
 - **Layer-aware rendering**: surface/day map shows the stone layer (or netherrack/endstone); the
   underground map picks the layer closest to the observed Y. This prevents a deepslate vein from
   covering the stone vein at the same origin.
@@ -61,8 +61,8 @@ The prospector sends one summary message. A vein is marked only once, so repeate
 - Fluid veins are **not** read or synced automatically. A field is only revealed after discovery:
   - Right-click with a GTCEu prospector in **FLUID mode** (`gtceu:prospector.hv/luv`), or
   - Right-click bedrock with an **empty hand** to reveal the field under that bedrock.
-- A discovered field is rendered as a full **8×8 chunk grid**, each chunk showing its own yield
-  (hover tooltip and a yield label at close zoom).
+- A discovered field is rendered as a full **8×8 chunk grid**, each chunk showing its own yield.
+  Yield text is small, appears only at close zoom, and is **fullscreen-map only** (the minimap stays clean).
 - Discovered regions are persisted per dimension and synced to the player.
 - The **Fluid Veins** map button switches the layer on and turns the ore layer off; the **Ore Veins**
   button does the reverse; **Hide Overlays** turns both off. There is no stacking/priority now.
@@ -101,7 +101,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-0.8.0-beta.jar` into **both client and server** `mods/`.
+3. Put `visualvein-0.9.0-beta.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
