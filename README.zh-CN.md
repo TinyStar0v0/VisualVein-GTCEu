@@ -139,3 +139,5 @@ VisualVein 代码使用 **LGPL-3.0-only**。完整协议见 [LICENSE](LICENSE)�
 本模组是独立项目，不是 VisualProspecting、GTCEu 或 JourneyMap 的分支。GTCEu 矿石贴图和 Minecraft
 岩层贴图在运行时从已安装的游戏读取，不打包进 VisualVein 的 jar。`libs/` 中的 GTCEu 与 JourneyMap
 jar 仅用于本地编译，版权归各自作者所有。
+
+VisualVein: GTCEu 的源代码及本项目原创资源采用 **GNU Lesser General Public License v3.0 only（LGPL-3.0-only）** 授权，版权归 VisualVein contributors 所有。任何分发者，无论分发原版还是修改版，都必须：保留本项目的版权声明、SPDX 标识、完整 LGPL-3.0 许可证文本和 `THIRD_PARTY_NOTICES.md`，不得移除、修改或规避这些声明；按 LGPL-3.0 及所并入的 GPL-3.0 第 6 条，向接收者提供本模组对应的完整源代码，或提供符合该条规定的有效源代码获取方式；若分发修改版，必须清楚标注修改内容，并继续以 LGPL-3.0-only 授权该修改版，不得转为闭源或附加额外限制。LGPL 允许闭源整合包包含**未修改**的本模组，也允许仅通过公开 API 交互的独立闭源附属模组，但不允许将本模组本身或其修改版闭源分发。GTCEu、Minecraft、JourneyMap 的代码和资源不属于本项目的 LGPL 授权范围，仍受各自许可证约束。若违反上述条件，依据 LGPL-3.0 所并入的 GPL-3.0 第 8 条，您对本模组的使用和分发授权将自动终止，必须立即停止分发并删除相关副本；继续分发可能构成版权侵权。本项目按“现状”提供，不附带任何担保；本段为许可证摘要，法律效力以 [LICENSE](LICENSE) 中的完整 LGPL-3.0 文本为准。
