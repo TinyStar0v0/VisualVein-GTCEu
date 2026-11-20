@@ -7,7 +7,6 @@ A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that re
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
 - **Mod ID**: `visualprospecting`
-- **Version**: 1.4.0
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
   JourneyMap 6.x also requires **Common Networking** (`common-networking-forge-1.20.1`).
