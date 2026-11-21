@@ -10,13 +10,13 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **v1.1.0-hotfix-02** — fullscreen search supports full pinyin (`tongkuang`) and pinyin initials
-> (`tk`), moved to the bottom-right, survives map close and right-clicks, and its highlighting is also
-> shown on the minimap. Ore markers are brighter with a light border; waypoints use the
-> server-recorded surface Y instead of landing underground.
+> **v1.1.0-hotfix-03** — waypoint creation now searches for a safe two-block air column near the vein
+> center, then expands outward, then uses the recorded surface, and only as a last resort places the
+> waypoint above build height. It never targets the underground vein center. Includes the persistent
+> pinyin search, minimap highlighting, and brighter ore markers from hotfix-02.
 
 - **Mod ID**: `visualvein`
-- **Version**: `1.1.2` (release name 1.1.0-hotfix-02)
+- **Version**: `1.1.3` (release name 1.1.0-hotfix-03)
 - **License**: LGPL-3.0-only
 - **Status**: Stable hotfix
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
@@ -62,7 +62,10 @@ The prospector sends one summary message. A vein is marked only once, so repeate
 - Newly marked veins appear on the **minimap immediately**; you do not need to open the fullscreen map
   first (minimap rendering can be disabled in the settings panel).
 - **Right-click a marked vein** to toggle it between depleted and active; the state is saved and synced.
-- **Double-click a marked vein or fluid field** to create/remove a JourneyMap waypoint.
+- **Double-click a marked vein or fluid field** to create/remove a JourneyMap waypoint. The waypoint is
+  placed in a safe two-block air column near the vein center; if none is found nearby it searches
+  farther out, then uses the recorded surface, and only as a last resort goes above build height. It
+  never uses the underground vein center as the waypoint Y.
 - **Fullscreen map search**: a search box at the bottom-right is shown while the Ore or Fluid layer is
   active. Typing a material name (Chinese, pinyin or English, e.g. `铜`, `tongkuang`, `tk`,
   `huangtong`, `copper`, `黄铜`) highlights every vein containing that material and dims the rest.
@@ -120,7 +123,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-1.1.2.jar` into **both client and server** `mods/`.
+3. Put `visualvein-1.1.3.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
