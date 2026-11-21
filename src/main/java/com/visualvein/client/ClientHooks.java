@@ -28,6 +28,8 @@ public final class ClientHooks {
     };
     public static Runnable toggleMarkerStyle = () -> {
     };
+    public static Runnable searchChanged = () -> {
+    };
     public static BooleanSupplier overlayEnabled = () -> true;
     public static BooleanSupplier labelsEnabled = () -> true;
     public static BooleanSupplier minimapEnabled = () -> false;
