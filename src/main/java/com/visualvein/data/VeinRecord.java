@@ -23,6 +23,8 @@ public final class VeinRecord {
     public final int centerX;
     public final int centerY;
     public final int centerZ;
+    /** Surface Y at the vein center, recorded server-side for waypoint creation. */
+    public int surfaceY;
     public final int clusterSize;
     public final float density;
     public final List<OreEntry> ores;
@@ -71,6 +73,7 @@ public final class VeinRecord {
         copy.depleted = depleted;
         copy.marked = marked;
         copy.markSource = markSource;
+        copy.surfaceY = surfaceY;
         copy.surfaceOres.addAll(surfaceOres);
         copy.surfacePoints.addAll(surfacePoints);
         copy.surfaceScanned = surfaceScanned;
@@ -108,6 +111,7 @@ public final class VeinRecord {
         tag.putInt("x", centerX);
         tag.putInt("y", centerY);
         tag.putInt("z", centerZ);
+        tag.putInt("surfaceY", surfaceY);
         tag.putInt("size", clusterSize);
         tag.putFloat("density", density);
         tag.putInt("mined", mined);
@@ -149,6 +153,7 @@ public final class VeinRecord {
                 tag.getInt("x"), tag.getInt("y"), tag.getInt("z"),
                 tag.getInt("size"), tag.getFloat("density"),
                 ores, tag.getInt("mined"), tag.getLong("found"));
+        record.surfaceY = tag.getInt("surfaceY");
         record.depleted = tag.getBoolean("depleted");
         record.marked = tag.getBoolean("marked");
         record.surfaceScanned = tag.getBoolean("surfaceScanned");
@@ -172,6 +177,7 @@ public final class VeinRecord {
         buf.writeVarInt(centerX);
         buf.writeVarInt(centerY);
         buf.writeVarInt(centerZ);
+        buf.writeVarInt(surfaceY);
         buf.writeVarInt(clusterSize);
         buf.writeFloat(density);
         buf.writeVarInt(mined);
@@ -201,6 +207,7 @@ public final class VeinRecord {
         int x = buf.readVarInt();
         int y = buf.readVarInt();
         int z = buf.readVarInt();
+        int surfaceY = buf.readVarInt();
         int size = buf.readVarInt();
         float density = buf.readFloat();
         int mined = buf.readVarInt();
@@ -214,6 +221,7 @@ public final class VeinRecord {
             ores.add(OreEntry.read(buf));
         }
         VeinRecord record = new VeinRecord(id, layer, ox, oz, x, y, z, size, density, ores, mined, found);
+        record.surfaceY = surfaceY;
         record.depleted = depleted;
         record.marked = marked;
         record.markSource = markSource;
