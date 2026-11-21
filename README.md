@@ -10,12 +10,13 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **v1.1.0-hotfix-01** — fullscreen map search now supports Chinese pinyin and pinyin initials
-> (`tong`, `huangtong`, `ht`). Type a material name to highlight every vein containing it and dim the
-> rest. Also places new waypoints at surface height instead of inside the vein.
+> **v1.1.0-hotfix-02** — fullscreen search supports full pinyin (`tongkuang`) and pinyin initials
+> (`tk`), moved to the bottom-right, survives map close and right-clicks, and its highlighting is also
+> shown on the minimap. Ore markers are brighter with a light border; waypoints use the
+> server-recorded surface Y instead of landing underground.
 
 - **Mod ID**: `visualvein`
-- **Version**: `1.1.1` (release name 1.1.0-hotfix-01)
+- **Version**: `1.1.2` (release name 1.1.0-hotfix-02)
 - **License**: LGPL-3.0-only
 - **Status**: Stable hotfix
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
@@ -66,8 +67,9 @@ The prospector sends one summary message. A vein is marked only once, so repeate
   active. Typing a material name (Chinese, pinyin or English, e.g. `铜`, `tongkuang`, `tk`,
   `huangtong`, `copper`, `黄铜`) highlights every vein containing that material and dims the rest.
   Full pinyin (`tongkuang`) and pinyin initials (`tk`) are both supported. Clearing the field restores
-  all veins. The search is fullscreen-only, is cleared when the fullscreen map closes, and never
-  affects the minimap.
+  all veins. Right-clicking the map does not clear the field, so several matching veins can be marked
+  in a row. The search box itself is fullscreen-only, but the highlighted/dimmed results are also shown
+  on the minimap and persist after the fullscreen map closes.
 - Hover a vein and press **Delete** to toggle its depleted state without opening the popup.
 - The VP panel no longer lists nearby veins; use `B`, double-click or `/vpwaypoint` instead.
 - Created overlays are cached across map close/reopen, so the layer appears much faster on reopen.
@@ -118,7 +120,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-1.1.1.jar` into **both client and server** `mods/`.
+3. Put `visualvein-1.1.2.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
