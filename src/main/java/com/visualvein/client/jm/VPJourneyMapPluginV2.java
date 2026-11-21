@@ -458,7 +458,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         }
 
         private static void applySearchStyle(Overlay overlay, VeinGroup group, UIState state) {
-            boolean search = MapSearch.active() && state.ui == Context.UI.Fullscreen;
+            // Search is shared by the fullscreen map and the minimap.
+            boolean search = MapSearch.active();
             boolean match = !search || MapSearch.matchesOre(group);
             if (overlay instanceof ImageOverlay image) {
                 MapImage icon = image.getImage();
@@ -620,7 +621,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                         int baseG = (basePixel >> 8) & 0xFF;
                         int baseR = basePixel & 0xFF;
                         if (ore == null) {
-                            output.setPixelRGBA(x, y, basePixel);
+                            output.setPixelRGBA(x, y, boostPixel(basePixel));
                             continue;
                         }
                         int orePixel = ore.getPixelRGBA(x, y);
@@ -633,9 +634,11 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                         int outG = (oreG * alpha + baseG * (255 - alpha)) / 255;
                         int outB = (oreB * alpha + baseB * (255 - alpha)) / 255;
                         int outA = Math.max(baseA, alpha);
-                        output.setPixelRGBA(x, y, (outA << 24) | (outB << 16) | (outG << 8) | outR);
+                        output.setPixelRGBA(x, y, (outA << 24)
+                                | (boost(outB) << 16) | (boost(outG) << 8) | boost(outR));
                     }
                 }
+                drawMarkerBorder(output);
                 if (depleted) {
                     drawDepletedCross(output);
                 }
@@ -643,6 +646,29 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             } catch (Throwable throwable) {
                 VisualVein.LOGGER.debug("Could not compose ore marker", throwable);
                 return null;
+            }
+        }
+
+        private static int boost(int channel) {
+            return Math.min(255, (channel * 5) / 4 + 24);
+        }
+
+        private static int boostPixel(int pixel) {
+            int alpha = (pixel >>> 24) & 0xFF;
+            int blue = (pixel >> 16) & 0xFF;
+            int green = (pixel >> 8) & 0xFF;
+            int red = pixel & 0xFF;
+            return (alpha << 24) | (boost(blue) << 16) | (boost(green) << 8) | boost(red);
+        }
+
+        private static void drawMarkerBorder(NativeImage image) {
+            // A light frame keeps the marker readable over dark forest/stone map tiles.
+            int border = 0xFFD8E0E0;
+            for (int i = 0; i < 16; i++) {
+                image.setPixelRGBA(i, 0, border);
+                image.setPixelRGBA(i, 15, border);
+                image.setPixelRGBA(0, i, border);
+                image.setPixelRGBA(15, i, border);
             }
         }
 
@@ -770,8 +796,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 MapImage icon = mapImageFor(record, state.dimension.location());
                 icon.centerAnchors();
                 ImageOverlay image = new ImageOverlay(VisualVein.MODID,
-                        new BlockPos(record.centerX - 3, record.centerY, record.centerZ - 3),
-                        new BlockPos(record.centerX + 3, record.centerY, record.centerZ + 3),
+                        new BlockPos(record.centerX - 4, record.centerY, record.centerZ - 4),
+                        new BlockPos(record.centerX + 4, record.centerY, record.centerZ + 4),
                         icon);
                 image.setDimension(state.dimension);
                 overlay = image;
@@ -934,7 +960,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 return false;
             }
             String name = waypointName(record);
-            int y = WaypointSurface.y(dimension, record.centerX, record.centerZ, record.centerY);
+            int y = WaypointSurface.y(dimension, record.centerX, record.centerZ, record.centerY,
+                    record.surfaceY, record.surfacePoints);
             Waypoint waypoint = WaypointFactory.createWaypoint(
                     VisualVein.MODID,
                     new BlockPos(record.centerX, y, record.centerZ),
