@@ -85,7 +85,7 @@
   "vp.dimension.the_nether": "Nether",
   "vp.dimension.the_end": "The End",
 
-  "vp.command.help.header": "VisualVein: GTCEu (1.1.0-hotfix-01)",
+  "vp.command.help.header": "VisualVein: GTCEu (1.1.0-hotfix-02)",
   "vp.command.help.list": "/vp list [page] - list discovered veins in this dimension",
   "vp.command.help.nearest": "/vp nearest - details of the nearest vein",
   "vp.command.help.scan": "/vp scan [radius] - scan the GTCEu vein grid around you",
