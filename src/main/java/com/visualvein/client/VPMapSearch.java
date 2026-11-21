@@ -118,7 +118,7 @@ public final class VPMapSearch {
         if (!isFullscreen(screen)) {
             return;
         }
-        box = new EditBox(minecraft.font, 6, screen.height - 28, 180, 20,
+        box = new EditBox(minecraft.font, searchX(screen), screen.height - 28, 180, 20,
                 Component.translatable("vp.search.hint"));
         box.setMaxLength(80);
         box.setHint(Component.translatable("vp.search.hint"));
@@ -138,13 +138,18 @@ public final class VPMapSearch {
         if (box == null) {
             return;
         }
-        box.setX(6);
+        box.setX(searchX(screen));
         box.setY(screen.height - 28);
         boolean visible = overlaysEnabled();
         if (!visible && box.isFocused()) {
             box.setFocused(false);
         }
         box.setVisible(visible);
+    }
+
+    private static int searchX(Screen screen) {
+        // Bottom-right: the JourneyMap theme switcher owns the bottom-left corner.
+        return Math.max(6, screen.width - 186);
     }
 
     private static boolean overlaysEnabled() {
