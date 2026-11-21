@@ -48,6 +48,11 @@ public final class VPMapSearch {
         box.setX(6);
         box.setY(event.getScreen().height - 28);
         box.setVisible(overlaysEnabled());
+        if (box.visible) {
+            // JourneyMap's Fullscreen render loop only draws Button renderables, so an EditBox
+            // added through ScreenEvent.Init.Post must be drawn explicitly.
+            box.render(event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick());
+        }
     }
 
     /**
