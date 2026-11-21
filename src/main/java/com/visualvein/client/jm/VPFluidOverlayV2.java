@@ -2,6 +2,7 @@ package com.visualvein.client.jm;
 
 import com.visualvein.VisualVein;
 import com.visualvein.client.ClientFluidCache;
+import com.visualvein.client.MapSearch;
 import com.visualvein.data.FluidVeinRecord;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.display.IOverlayListener;
@@ -40,6 +41,7 @@ import java.util.Set;
 public final class VPFluidOverlayV2 {
 
     private static final Map<String, PolygonOverlay> SHOWN = new HashMap<>();
+    private static final Map<String, FluidVeinRecord> RECORDS = new HashMap<>();
     private static final Map<String, String> TITLES = new HashMap<>();
     private static IClientAPI api;
     private static boolean enabled = true;
@@ -118,6 +120,7 @@ public final class VPFluidOverlayV2 {
         }
         SHOWN.clear();
         TITLES.clear();
+        RECORDS.clear();
     }
 
     public static void refresh(@Nullable UIState state) {
@@ -185,6 +188,7 @@ public final class VPFluidOverlayV2 {
                         try {
                             api.show(overlay);
                             SHOWN.put(key, overlay);
+                            RECORDS.put(key, record);
                             TITLES.put(key, overlay.getTitle());
                         } catch (Throwable throwable) {
                             VisualVein.LOGGER.warn("Could not show fluid region {}", key, throwable);
@@ -207,6 +211,7 @@ public final class VPFluidOverlayV2 {
                             try {
                                 api.show(overlay);
                                 SHOWN.put(key, overlay);
+                                RECORDS.put(key, record);
                                 TITLES.put(key, overlay.getTitle());
                             } catch (Throwable throwable) {
                                 VisualVein.LOGGER.warn("Could not show fluid tile {}", key, throwable);
@@ -224,6 +229,7 @@ public final class VPFluidOverlayV2 {
                 api.remove(entry.getValue());
                 iterator.remove();
                 TITLES.remove(entry.getKey());
+                RECORDS.remove(entry.getKey());
             }
         }
         for (Map.Entry<String, PolygonOverlay> entry : SHOWN.entrySet()) {
@@ -233,6 +239,37 @@ public final class VPFluidOverlayV2 {
                 entry.getValue().flagForRerender();
                 TITLES.put(entry.getKey(), title);
             }
+        }
+        applySearchStyles(state);
+    }
+
+    public static void applySearch() {
+        if (api == null) {
+            return;
+        }
+        UIState state = api.getUIState(Context.UI.Fullscreen);
+        if (state == null || !state.active) {
+            state = api.getUIState(Context.UI.Minimap);
+        }
+        if (state != null && state.active) {
+            applySearchStyles(state);
+        }
+    }
+
+    private static void applySearchStyles(UIState state) {
+        boolean search = MapSearch.active() && state.ui == Context.UI.Fullscreen;
+        for (Map.Entry<String, PolygonOverlay> entry : SHOWN.entrySet()) {
+            FluidVeinRecord record = RECORDS.get(entry.getKey());
+            if (record == null) {
+                continue;
+            }
+            boolean match = !search || MapSearch.matchesFluid(record);
+            boolean tile = entry.getKey().split(":").length >= 5;
+            ShapeProperties shape = fluidShape(record, tile ? 0.35F : 0.28F,
+                    0.9F, tile ? 0.8F : 1.0F, search ? match : null);
+            entry.getValue().setShapeProperties(shape);
+            entry.getValue().setDisplayOrder(search && match ? 130 : 90);
+            entry.getValue().flagForRerender();
         }
     }
 
@@ -252,14 +289,34 @@ public final class VPFluidOverlayV2 {
         return Math.abs(x - center.getX()) <= 512 && Math.abs(z - center.getZ()) <= 512;
     }
 
-    private static PolygonOverlay createRegionOverlay(UIState state, FluidVeinRecord record, String name) {
+    private static ShapeProperties fluidShape(FluidVeinRecord record, float fill,
+                                              float strokeOpacity, float strokeWidth,
+                                              @Nullable Boolean searchMatch) {
         int color = fluidColor(record.fluidId());
-        ShapeProperties shape = new ShapeProperties()
+        int strokeColor = brighten(color);
+        if (searchMatch != null) {
+            if (searchMatch) {
+                fill = Math.max(fill, 0.55F);
+                strokeColor = 0xFFD700;
+                strokeOpacity = 1.0F;
+                strokeWidth = 2.0F;
+            } else {
+                fill = 0.04F;
+                strokeColor = 0x555555;
+                strokeOpacity = 0.2F;
+                strokeWidth = 0.5F;
+            }
+        }
+        return new ShapeProperties()
                 .setFillColor(color)
-                .setFillOpacity(0.28F)
-                .setStrokeColor(brighten(color))
-                .setStrokeOpacity(0.7F)
-                .setStrokeWidth(1.0F);
+                .setFillOpacity(fill)
+                .setStrokeColor(strokeColor)
+                .setStrokeOpacity(strokeOpacity)
+                .setStrokeWidth(strokeWidth);
+    }
+
+    private static PolygonOverlay createRegionOverlay(UIState state, FluidVeinRecord record, String name) {
+        ShapeProperties shape = fluidShape(record, 0.28F, 0.7F, 1.0F, null);
         int x = record.centerX();
         int z = record.centerZ();
         MapPolygon polygon = new MapPolygon(
@@ -303,13 +360,7 @@ public final class VPFluidOverlayV2 {
         int chunkZ = record.regionZ() * 8 + dz;
         int x = chunkX * 16 + 8;
         int z = chunkZ * 16 + 8;
-        int color = fluidColor(record.fluidId());
-        ShapeProperties shape = new ShapeProperties()
-                .setFillColor(color)
-                .setFillOpacity(0.35F)
-                .setStrokeColor(brighten(color))
-                .setStrokeOpacity(0.65F)
-                .setStrokeWidth(0.8F);
+        ShapeProperties shape = fluidShape(record, 0.35F, 0.65F, 0.8F, null);
         MapPolygon polygon = new MapPolygon(
                 new BlockPos(x - 8, 64, z - 8),
                 new BlockPos(x + 8, 64, z - 8),
@@ -387,9 +438,11 @@ public final class VPFluidOverlayV2 {
                 }
                 return;
             }
+            int y = com.visualvein.client.WaypointSurface.y(
+                    state.dimension, record.centerX(), record.centerZ(), 64);
             Waypoint waypoint = WaypointFactory.createWaypoint(
                     VisualVein.MODID,
-                    new BlockPos(record.centerX(), 64, record.centerZ()),
+                    new BlockPos(record.centerX(), y, record.centerZ()),
                     name,
                     state.dimension,
                     true);
