@@ -41,6 +41,49 @@ public final class VPMapSearch {
     }
 
     @SubscribeEvent
+    public static void onMousePressed(ScreenEvent.MouseButtonPressed.Pre event) {
+        if (!isFullscreen(event.getScreen()) || box == null || !box.visible) {
+            return;
+        }
+        if (box.isMouseOver(event.getMouseX(), event.getMouseY())) {
+            box.setFocused(true);
+            box.mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton());
+            event.setCanceled(true);
+            return;
+        }
+        if (box.isFocused()) {
+            box.setFocused(false);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onKeyPressed(ScreenEvent.KeyPressed.Pre event) {
+        if (!isFullscreen(event.getScreen()) || box == null || !box.isFocused()) {
+            return;
+        }
+        if (event.getKeyCode() == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+                || event.getKeyCode() == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER
+                || event.getKeyCode() == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
+            box.setFocused(false);
+            event.setCanceled(true);
+            return;
+        }
+        // JourneyMap sends unhandled typing to its coordinate search/chat; while our field is
+        // focused it must receive the key instead.
+        box.keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers());
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onCharTyped(ScreenEvent.CharacterTyped.Pre event) {
+        if (!isFullscreen(event.getScreen()) || box == null || !box.isFocused()) {
+            return;
+        }
+        box.charTyped((char) event.getCodePoint(), event.getModifiers());
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent
     public static void onScreenRender(ScreenEvent.Render.Post event) {
         if (!isFullscreen(event.getScreen()) || box == null) {
             return;
