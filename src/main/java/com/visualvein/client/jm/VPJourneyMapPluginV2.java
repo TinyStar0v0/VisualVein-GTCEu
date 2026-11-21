@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.visualvein.VisualVein;
 import com.visualvein.client.ClientHooks;
 import com.visualvein.client.MapSearch;
+import com.visualvein.client.VPMapSearch;
 import com.visualvein.client.WaypointSurface;
 import com.visualvein.client.ClientVeinCache;
 import com.visualvein.config.VPConfig;
@@ -33,6 +34,7 @@ import journeymap.api.v2.common.Context;
 import journeymap.api.v2.common.JourneyMapPlugin;
 import journeymap.api.v2.common.event.ClientEventRegistry;
 import journeymap.api.v2.common.event.FullscreenEventRegistry;
+import net.minecraftforge.common.MinecraftForge;
 import journeymap.api.v2.common.waypoint.Waypoint;
 import journeymap.api.v2.common.waypoint.WaypointFactory;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -99,6 +101,8 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
             VeinOverlayManagerV2.applySearch();
             VPFluidOverlayV2.applySearch();
         };
+        MinecraftForge.EVENT_BUS.addListener(VPMapSearch::clientTick);
+        FullscreenEventRegistry.FULLSCREEN_RENDER_EVENT.subscribe(VisualVein.MODID, VPMapSearch::render);
 
         ClientEventRegistry.DISPLAY_UPDATE_EVENT.subscribe(VisualVein.MODID, event -> {
             VeinOverlayManagerV2.refresh(event.uiState);
