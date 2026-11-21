@@ -10,14 +10,14 @@
 A Minecraft **1.20.1 / Forge** addon for **GregTech CEu Modern (GTCEu)** that records GTCEu ore veins and
 renders them on **JourneyMap**. Inspired by the classic 1.7.10 VisualProspecting.
 
-> **v1.1.0** — fullscreen map search: type a material name (for example "copper" or "铜") to highlight
-> every vein containing it and dim the rest. Also places new waypoints at surface height instead of
-> inside the vein.
+> **v1.1.0-hotfix-01** — fullscreen map search now supports Chinese pinyin and pinyin initials
+> (`tong`, `huangtong`, `ht`). Type a material name to highlight every vein containing it and dim the
+> rest. Also places new waypoints at surface height instead of inside the vein.
 
 - **Mod ID**: `visualvein`
-- **Version**: `1.1.0`
+- **Version**: `1.1.1` (release name 1.1.0-hotfix-01)
 - **License**: LGPL-3.0-only
-- **Status**: Stable
+- **Status**: Stable hotfix
 - **Requirements**: Forge 47.x, GTCEu Modern 1.20.1 (1.4.4+), JourneyMap 1.20.1 (client only)
 - **JourneyMap support**: 5.x (API v1, e.g. 5.10.3) and 6.x (API v2, e.g. 6.0.7).
   JourneyMap 6.x also requires **Common Networking** (`common-networking-forge-1.20.1`).
@@ -62,10 +62,12 @@ The prospector sends one summary message. A vein is marked only once, so repeate
   first (minimap rendering can be disabled in the settings panel).
 - **Right-click a marked vein** to toggle it between depleted and active; the state is saved and synced.
 - **Double-click a marked vein or fluid field** to create/remove a JourneyMap waypoint.
-- **Fullscreen map search**: a search box at the bottom-left is shown while the Ore or Fluid layer is
-  active. Typing a material name (Chinese or English, e.g. `铜`, `copper`, `黄铜`) highlights every vein
-  containing that material and dims the rest. Clearing the field restores all veins. The search is
-  fullscreen-only, is cleared when the fullscreen map closes, and never affects the minimap.
+- **Fullscreen map search**: a search box at the bottom-right is shown while the Ore or Fluid layer is
+  active. Typing a material name (Chinese, pinyin or English, e.g. `铜`, `tongkuang`, `tk`,
+  `huangtong`, `copper`, `黄铜`) highlights every vein containing that material and dims the rest.
+  Full pinyin (`tongkuang`) and pinyin initials (`tk`) are both supported. Clearing the field restores
+  all veins. The search is fullscreen-only, is cleared when the fullscreen map closes, and never
+  affects the minimap.
 - Hover a vein and press **Delete** to toggle its depleted state without opening the popup.
 - The VP panel no longer lists nearby veins; use `B`, double-click or `/vpwaypoint` instead.
 - Created overlays are cached across map close/reopen, so the layer appears much faster on reopen.
@@ -116,7 +118,7 @@ ore count.
 1. Install Minecraft 1.20.1 + Forge 47.x.
 2. Put `gtceu-1.20.1-*.jar` and `journeymap-1.20.1-*.jar` into `mods/`.
    For JourneyMap 6.x, also install `common-networking-forge-1.20.1-*.jar`.
-3. Put `visualvein-1.1.0.jar` into **both client and server** `mods/`.
+3. Put `visualvein-1.1.1.jar` into **both client and server** `mods/`.
 4. Launch the game, enter a world, mark veins manually, then open JourneyMap.
 
 Old worlds do not need to be cleared: automatic scanning fills the database, and unmarked veins stay
