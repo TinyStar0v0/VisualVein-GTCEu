@@ -58,6 +58,11 @@ public final class VeinWorldData extends SavedData {
                 existing.mined = record.mined;
                 setDirty();
             }
+            // Older saved records predate the server-recorded surface height.
+            if (existing.surfaceY == 0 && record.surfaceY != 0) {
+                existing.surfaceY = record.surfaceY;
+                setDirty();
+            }
             return false;
         }
         veins.add(record);
