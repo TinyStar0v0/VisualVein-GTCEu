@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0
+
+- Added a fullscreen-map search box at the bottom-left, shown while the Ore or Fluid layer is active.
+- Matches localized ore/fluid names and material IDs, so `铜`, `黄铜`, `copper`, etc. match every vein
+  containing that material, not only the vein's primary name.
+- Matching markers are highlighted; non-matching ore and fluid overlays are dimmed. Works in both
+  texture and color marker modes.
+- Clearing the search restores normal rendering. Closing the fullscreen map clears the search.
+- Search never applies to the minimap.
+- New JourneyMap waypoints are placed at the surface height of the vein column instead of the
+  underground vein center (issue #1).
+
 ## 1.0.2 — license hotfix (1.00-hotfix-02)
 
 - Project license changed from MIT to **LGPL-3.0-only**.
