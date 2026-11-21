@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public final class VPNetwork {
 
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "2";
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(VisualVein.MODID, "main"),
             () -> PROTOCOL,
