@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.1 — hotfix (1.1.0-hotfix-01)
+
+- Chinese pinyin search for the fullscreen map search box: full pinyin (`tongkuang`, `huangtong`) and
+  pinyin initials/半拼 (`tk`, `ht`) now match localized ore/vein names through ICU4J's Han-Latin
+  transliterator.
+- The search box moved to the bottom-right so it no longer competes with JourneyMap's theme selector
+  in the bottom-left.
+- Direct Chinese and English/material-ID matching remains.
+- Search hint now mentions pinyin support.
+- Internal Forge version: `1.1.1`; release name: `1.1.0-hotfix-01`.
+
 ## 1.1.0
 
 - Added a fullscreen-map search box at the bottom-left, shown while the Ore or Fluid layer is active.
