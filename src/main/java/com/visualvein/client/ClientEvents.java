@@ -31,6 +31,7 @@ public final class ClientEvents {
         while (ClientSetup.TOGGLE_STATUS.consumeClick()) {
             ClientHooks.toggleHoveredStatus.run();
         }
+        VPMapSearch.tick();
     }
 
     @SubscribeEvent
