@@ -257,7 +257,7 @@ public final class VPFluidOverlayV2 {
     }
 
     private static void applySearchStyles(UIState state) {
-        boolean search = MapSearch.active() && state.ui == Context.UI.Fullscreen;
+        boolean search = MapSearch.active();
         for (Map.Entry<String, PolygonOverlay> entry : SHOWN.entrySet()) {
             FluidVeinRecord record = RECORDS.get(entry.getKey());
             if (record == null) {
