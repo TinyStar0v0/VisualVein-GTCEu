@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.visualvein.VisualVein;
 import com.visualvein.client.ClientHooks;
+import com.visualvein.client.MapSearch;
+import com.visualvein.client.WaypointSurface;
 import com.visualvein.client.ClientVeinCache;
 import com.visualvein.config.VPConfig;
 import com.visualvein.data.VeinGroup;
@@ -93,6 +95,10 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         ClientHooks.toggleHoveredStatus = VeinOverlayManagerV2::toggleHoveredStatus;
         ClientHooks.toggleMarkerStyle = () -> VeinOverlayManagerV2.setTextureMode(!VeinOverlayManagerV2.isTextureMode());
         ClientHooks.textureMarkers = VeinOverlayManagerV2::isTextureMode;
+        ClientHooks.searchChanged = () -> {
+            VeinOverlayManagerV2.applySearch();
+            VPFluidOverlayV2.applySearch();
+        };
 
         ClientEventRegistry.DISPLAY_UPDATE_EVENT.subscribe(VisualVein.MODID, event -> {
             VeinOverlayManagerV2.refresh(event.uiState);
@@ -375,6 +381,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 SHOWN.put(group.key(), overlay);
                 TITLES.put(group.key(), group.title());
                 STYLES.put(group.key(), styleKey(group.primary()));
+                applySearchStyle(overlay, group, state);
             } catch (Throwable throwable) {
                 VisualVein.LOGGER.warn("Could not show JourneyMap overlay {}", group.key(), throwable);
             }
@@ -416,8 +423,47 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                     entry.getValue().setLabel(label);
                     TITLES.put(entry.getKey(), title);
                 }
+                applySearchStyle(entry.getValue(), group, state);
                 entry.getValue().flagForRerender();
             }
+        }
+
+        public static void applySearch() {
+            if (api == null) {
+                return;
+            }
+            UIState state = api.getUIState(Context.UI.Fullscreen);
+            if (state == null || !state.active) {
+                state = api.getUIState(Context.UI.Minimap);
+            }
+            if (state == null || !state.active || state.dimension == null) {
+                return;
+            }
+            ClientVeinCache.DimensionData data = ClientVeinCache.get(state.dimension.location());
+            if (data == null) {
+                return;
+            }
+            Map<String, VeinGroup> groups = groupMap(data, state);
+            for (Map.Entry<String, Overlay> entry : new ArrayList<>(SHOWN.entrySet())) {
+                VeinGroup group = groups.get(entry.getKey());
+                if (group != null) {
+                    applySearchStyle(entry.getValue(), group, state);
+                    entry.getValue().flagForRerender();
+                }
+            }
+        }
+
+        private static void applySearchStyle(Overlay overlay, VeinGroup group, UIState state) {
+            boolean search = MapSearch.active() && state.ui == Context.UI.Fullscreen;
+            boolean match = !search || MapSearch.matchesOre(group);
+            if (overlay instanceof ImageOverlay image) {
+                MapImage icon = image.getImage();
+                icon.setOpacity(match ? 1.0F : 0.15F);
+                icon.setColor(match ? 0xFFFFFF : 0x777777);
+            } else if (overlay instanceof PolygonOverlay polygon) {
+                polygon.setShapeProperties(shapeFor(group.primary(), search ? match : null));
+            }
+            overlay.setDisplayOrder(search && match ? 130 : (group.primary().depleted ? 110 : 100));
         }
 
         private static Map<String, VeinGroup> groupMap(ClientVeinCache.DimensionData data, UIState state) {
@@ -657,17 +703,38 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
         }
 
         private static ShapeProperties shapeFor(VeinRecord record) {
+            return shapeFor(record, null);
+        }
+
+        private static ShapeProperties shapeFor(VeinRecord record, @Nullable Boolean searchMatch) {
             int color = record.depleted ? 0x8A2B2B
                     : (record.ores.isEmpty() ? 0x888888 : record.ores.get(0).color);
             if (color == 0) {
                 color = 0x888888;
             }
+            float fill = VPConfig.CLIENT.fillOpacity().get().floatValue();
+            int strokeColor = record.depleted ? 0xFF5555 : 0xFFFFFF;
+            float strokeOpacity = 0.9F;
+            float strokeWidth = record.depleted ? 2.5F : 1.5F;
+            if (searchMatch != null) {
+                if (searchMatch) {
+                    fill = Math.max(fill, 0.55F);
+                    strokeColor = 0xFFD700;
+                    strokeOpacity = 1.0F;
+                    strokeWidth = 2.5F;
+                } else {
+                    fill = 0.05F;
+                    strokeColor = 0x555555;
+                    strokeOpacity = 0.2F;
+                    strokeWidth = 0.5F;
+                }
+            }
             return new ShapeProperties()
                     .setFillColor(color)
-                    .setFillOpacity(VPConfig.CLIENT.fillOpacity().get().floatValue())
-                    .setStrokeColor(record.depleted ? 0xFF5555 : 0xFFFFFF)
-                    .setStrokeOpacity(0.9F)
-                    .setStrokeWidth(record.depleted ? 2.5F : 1.5F);
+                    .setFillOpacity(fill)
+                    .setStrokeColor(strokeColor)
+                    .setStrokeOpacity(strokeOpacity)
+                    .setStrokeWidth(strokeWidth);
         }
 
         private static String styleKey(VeinRecord record) {
@@ -863,9 +930,10 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 return false;
             }
             String name = waypointName(record);
+            int y = WaypointSurface.y(dimension, record.centerX, record.centerZ, record.centerY);
             Waypoint waypoint = WaypointFactory.createWaypoint(
                     VisualVein.MODID,
-                    new BlockPos(record.centerX, record.centerY, record.centerZ),
+                    new BlockPos(record.centerX, y, record.centerZ),
                     name,
                     dimension,
                     true);
