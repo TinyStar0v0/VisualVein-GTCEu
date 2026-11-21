@@ -158,7 +158,7 @@ public final class VeinScanner {
         ResourceLocation dimension = level.dimension().location();
         List<VeinRecord> changed = new ArrayList<>();
         for (GeneratedVeinMetadata meta : metadata) {
-            VeinRecord record = createRecord(meta);
+            VeinRecord record = createRecord(level, meta);
             if (record == null) {
                 continue;
             }
@@ -299,7 +299,7 @@ public final class VeinScanner {
     }
 
     @Nullable
-    private static VeinRecord createRecord(GeneratedVeinMetadata meta) {
+    private static VeinRecord createRecord(ServerLevel level, GeneratedVeinMetadata meta) {
         GTOreDefinition definition = meta.definition();
         if (definition == null || definition.veinGenerator() == null) {
             return null;
@@ -323,7 +323,7 @@ public final class VeinScanner {
             layer = definition.layer().getSerializedName();
         } catch (Throwable ignored) {
         }
-        return new VeinRecord(
+        VeinRecord record = new VeinRecord(
                 meta.id(),
                 layer,
                 meta.originChunk().x,
@@ -337,6 +337,13 @@ public final class VeinScanner {
                 0,
                 System.currentTimeMillis()
         );
+        try {
+            record.surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    center.getX(), center.getZ());
+        } catch (Throwable ignored) {
+            record.surfaceY = center.getY();
+        }
+        return record;
     }
 
     private static List<OreEntry> collectOres(GTOreDefinition definition) {
