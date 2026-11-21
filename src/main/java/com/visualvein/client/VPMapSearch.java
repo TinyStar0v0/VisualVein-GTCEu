@@ -20,7 +20,8 @@ import java.util.List;
 /**
  * Search field for the JourneyMap fullscreen map. JourneyMap 6.0.7 has no text-input API for addons,
  * and its Fullscreen screen neither calls Screen.init() nor Screen.render(); therefore the field is
- * created lazily, kept out of the Button-only renderables list, and drawn from RenderGuiEvent.Post.
+ * created lazily, kept out of the Button-only renderables list, and drawn from JourneyMap's
+ * FullscreenRenderEvent.
  */
 @Mod.EventBusSubscriber(modid = VisualVein.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class VPMapSearch {
@@ -59,7 +60,8 @@ public final class VPMapSearch {
         Screen screen = minecraft.screen;
         boolean fullscreen = isFullscreen(screen);
         if (wasFullscreen && !fullscreen) {
-            MapSearch.clear();
+            // Keep the query alive: the same highlighted results must stay on the minimap and
+            // be restored when the fullscreen map is reopened.
             box = null;
         }
         wasFullscreen = fullscreen;
@@ -77,15 +79,19 @@ public final class VPMapSearch {
         if (!isFullscreen(event.getScreen()) || box == null || !box.visible) {
             return;
         }
+        // Right-clicking the map is how veins are marked depleted/active. It must not clear,
+        // unfocus or otherwise disturb an active material search.
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            return;
+        }
         if (box.isMouseOver(event.getMouseX(), event.getMouseY())) {
             box.setFocused(true);
             box.mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton());
             event.setCanceled(true);
             return;
         }
-        if (box.isFocused()) {
-            box.setFocused(false);
-        }
+        // Keep the field focused when clicking the map so the query stays available for marking
+        // multiple veins. Escape is the explicit way to leave the search field.
     }
 
     @SubscribeEvent
