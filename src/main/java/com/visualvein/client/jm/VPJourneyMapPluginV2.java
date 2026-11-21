@@ -960,8 +960,7 @@ public final class VPJourneyMapPluginV2 implements IClientPlugin {
                 return false;
             }
             String name = waypointName(record);
-            int y = WaypointSurface.y(dimension, record.centerX, record.centerZ, record.centerY,
-                    record.surfaceY, record.surfacePoints);
+            int y = WaypointSurface.y(dimension, record);
             Waypoint waypoint = WaypointFactory.createWaypoint(
                     VisualVein.MODID,
                     new BlockPos(record.centerX, y, record.centerZ),
