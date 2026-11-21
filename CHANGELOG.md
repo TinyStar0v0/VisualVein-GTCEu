@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.2 — hotfix (1.1.0-hotfix-02)
+
+- Right-clicking the fullscreen map no longer clears or unfocuses the search field; multiple matching
+  veins can be marked while the search remains active.
+- Closing the fullscreen map no longer clears the query; reopening restores it.
+- Search highlighting/dimming now also applies to the minimap.
+- Search box moved to the bottom-right to avoid JourneyMap's theme switcher in the bottom-left.
+- Ore texture markers are brightened and get a light 1px border for readability over dark map tiles;
+  the marker footprint is 8×8 blocks.
+- Waypoints use a server-recorded surface Y (falling back to the client heightmap or nearest surface
+  rock) so they no longer land inside the vein/ground.
+- Full pinyin (`tongkuang`) and pinyin initials / 半拼 (`tk`) search are included.
+- Internal Forge version: `1.1.2`; release name: `1.1.0-hotfix-02`.
+
 ## 1.1.1 — hotfix (1.1.0-hotfix-01)
 
 - Chinese pinyin search for the fullscreen map search box: full pinyin (`tongkuang`, `huangtong`) and
