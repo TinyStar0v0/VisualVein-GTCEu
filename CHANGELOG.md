@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.3 — hotfix (1.1.0-hotfix-03)
+
+- Waypoint placement now searches for a safe two-block air column near the vein center, expanding
+  outward up to 10 blocks.
+- If no safe column is loaded/available, uses the server-recorded surface Y, then the nearest surface
+  rock, and finally a position above build height. It never uses the underground vein center as Y.
+- Includes hotfix-02: persistent pinyin search, minimap highlighting, right-click-safe search box at
+  bottom-right, brighter texture markers.
+- Internal Forge version: `1.1.3`; release name: `1.1.0-hotfix-03`.
+
 ## 1.1.2 — hotfix (1.1.0-hotfix-02)
 
 - Right-clicking the fullscreen map no longer clears or unfocuses the search field; multiple matching
