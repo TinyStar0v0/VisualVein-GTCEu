@@ -4,7 +4,7 @@ Minecraft 1.20.1 / Forge addon for **GregTech CEu Modern** that records ore vein
 discovered veins on a map mod.<br>
 <a href="https://www.curseforge.com/minecraft/mc-mods/visualvein"><img src="https://cf.way2muchnoise.eu/visualvein.svg?badge_style=for_the_badge" alt="CurseForge"></a>Journeymap Ver.
 <br>
-<a href="https://www.curseforge.com/minecraft/mc-mods/visualvein-xaeros-version/"><img src="https://cf.way2muchnoise.eu/visualvein.svg?badge_style=for_the_badge" alt="CurseForge">Xaero's Ver.
+<a href="https://www.curseforge.com/minecraft/mc-mods/visualvein-xaeros-version/"><img src="https://cf.way2muchnoise.eu/visualvein-xaeros-version.svg?badge_style=for_the_badge" alt="CurseForge"></a>Xaero's Ver.
 <br>
 <a href="https://modrinth.com/mod/visualvein"><img src="https://img.shields.io/modrinth/dt/VisualVein?logo=modrinth&label=&suffix=%20&style=for-the-badge&color=2d2d2d&labelColor=5ca424&logoColor=1c1c1c" alt="Modrinth"></a>
 <br>
