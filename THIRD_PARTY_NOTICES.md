@@ -1,7 +1,7 @@
 # Third-party notices
 
 VisualVein: GTCEu is an independent project. It is not a fork of VisualProspecting,
-GregTech CEu Modern, or JourneyMap.
+GregTech CEu Modern, Xaero's World Map, or Xaero's Minimap.
 
 ## VisualVein code
 
@@ -32,12 +32,15 @@ Minecraft client resources at runtime.
 - Minecraft assets are copyright Mojang Studios / Microsoft.
 - They are **not bundled** in the VisualVein jar.
 
-## JourneyMap
+## Xaero's World Map and Minimap
 
-The JourneyMap API is used as a compile-time dependency. JourneyMap itself is not
-bundled and remains under its own license.
+Xaero's World Map and Xaero's Minimap are compile-time dependencies and are not
+bundled. They remain under their own All Rights Reserved license. VisualVein
+registers map elements and right-click options through Xaero's public runtime
+classes.
 
-- Project: https://github.com/TeamJM/journeymap-api
+- Xaero's World Map: https://www.curseforge.com/minecraft/mc-mods/xaeros-world-map
+- Xaero's Minimap: https://www.curseforge.com/minecraft/mc-mods/xaeros-minimap
 - JourneyMap: https://www.curseforge.com/minecraft/mc-mods/journeymap
 
 ## Runtime dependencies
