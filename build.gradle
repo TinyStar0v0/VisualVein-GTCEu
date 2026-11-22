@@ -8,7 +8,7 @@ version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = mod_id
+    archivesName = 'visualvein-xaero'
 }
 
 java {
@@ -53,17 +53,20 @@ repositories {
         name = 'Mojang'
         url = 'https://libraries.minecraft.net/'
     }
+    maven {
+        name = "Xaero's Maven"
+        url = 'https://chocolateminecraft.com/maven'
+    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${mapping_version}-${forge_version}"
 
-    // Compile-time only. These jars are not shipped with the mod.
-    // GTCEu and JourneyMap are provided by the player at runtime.
+    // Compile-time only. Xaero and GTCEu are provided by the player at runtime.
     compileOnly files("libs/gtceu-1.20.1-${gtceu_version}.jar")
-    // JourneyMap 5.x API v1 and JourneyMap 6.x API v2 are compiled side by side.
-    compileOnly files("libs/journeymap-1.20.1-${journeymap_version}-forge.jar")
-    compileOnly files("libs/journeymap-api-forge-1.20.1-2.0.0.jar")
+    compileOnly "xaero.map:xaeroworldmap-common-1.20.1:${xaero_world_map_version}"
+    compileOnly "xaero.minimap:xaerominimap-common-1.20.1:${xaero_minimap_version}"
+    compileOnly "xaero.lib:xaerolib-common-1.20.1:${xaero_lib_version}"
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -79,7 +82,9 @@ tasks.named('processResources', ProcessResources).configure {
             mod_version            : mod_version,
             mod_authors            : mod_authors,
             mod_description        : mod_description,
-            gtceu_version_range    : '[1.4.4,8.0.0)'
+            gtceu_version_range    : '[1.4.4,8.0.0)',
+            xaero_world_map_range  : '[1.47.0,)',
+            xaero_minimap_range    : '[26.6.0,)'
     ]
     inputs.properties replaceProperties
 

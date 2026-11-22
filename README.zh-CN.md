@@ -1,150 +1,36 @@
-# VisualVein: GTCEu（可视化探矿）
+![](https://github.com/TinyStar0v0/VisualVein-GTCEu/blob/main/639307842200860044.png)
+# VisualVein: GTCEu（Xaero 版）
 
-[English](README.md)
+[English](README.md)<br>
+[![CodeFactor](https://www.codefactor.io/repository/github/tinystar0v0/visualvein-gtceu/badge)](https://www.codefactor.io/repository/github/tinystar0v0/visualvein-gtceu)<br>
 
-一个面向 **Minecraft 1.20.1 / Forge** 的 **GregTech CEu Modern（GTCEu）** 矿脉辅助模组。
-它把 GTCEu 世界生成中的矿脉信息记录下来，并显示在 **JourneyMap（旅行地图）** 的全屏地图和小地图上。
+Minecraft **1.20.1 / Forge** 的 **GregTech CEu Modern** 辅助模组。记录 GTCEu 矿脉，并把玩家**手动发现**的矿脉显示在 **Xaero's World Map** 和 **Xaero's Minimap** 上。
 
-> **v1.1.0-hotfix-03** —— 创建路径点时会先在矿脉中心附近寻找安全的两格空气位置，找不到就扩大范围，
-> 再使用服务端记录的地表，最后才放到建筑高度以上；不会再把地下矿脉中心当作路径点 Y。
-> 同时包含 hotfix-02 的持久拼音搜索、小地图高亮和更亮的矿脉图标。
+本分支是**不依赖 JourneyMap** 的 Xaero 专用版本。
 
 - **模组 ID**：`visualvein`
-- **版本**：`1.1.3`（发布名 1.1.0-hotfix-03）
-- **许可证**：LGPL-3.0-only
-- **状态**：正式版热修复
-- **前置**：Forge 47.x、GTCEu Modern 1.20.1（1.4.4 及以上）、JourneyMap 1.20.1（仅客户端需要）
-- **JourneyMap 版本**：支持 5.x（API v1，例如 5.10.3）和 6.x（API v2，例如 6.0.7）。
-  JourneyMap 6.x 还需要 **Common Networking**（`common-networking-forge-1.20.1`）。
-- **安装位置**：客户端与服务端都需要安装本模组；JourneyMap 只需装在客户端。
+- **版本**：`1.0.0-xaero`
+- **协议**：LGPL-3.0-only
+- **依赖**：Forge 47.x、GTCEu 1.20.1（1.4.4+）、Xaero's World Map 1.47.0+、Xaero's Minimap 26.6.0+
+- **安装**：客户端和服务端都需要本模组；Xaero 两件套仅客户端需要
 
 ## 功能
 
-### 自动发现，手动标记
-
-GTCEu 的矿脉按原点网格生成，同一个原点可能同时有石头层和深板岩层矿脉。模组在区块加载时向
-GTCEu 的 `OreGenerator` 查询元数据并建立服务端数据库，但**不会自动把矿脉画到地图上**。
-
-默认 `showOnlyMarked=true`，只有玩家手动标记过的矿脉才会显示。标记方式：
-
-- **破坏/右键 GTCEu 地表碎矿（Surface Rock）**：按碎矿材料寻找最近的对应矿脉并标记；
-- **破坏完整 GTCEu 矿石块**：归因到矿脉并标记，同时累计近似开采数；
-- **手持 GTCEu 探矿仪（`gtceu:prospector.lv/hv/luv`）右键**：一键扫描周围矿脉并全部标记。
-
-每次新增地图标记时，聊天框会提示“已标记矿脉：…（x, z）”。探矿仪会提示一次标记数量。
-同一条矿脉只标记一次，重复操作不会刷屏。
-
-### JourneyMap 地图图层
-
-- 已标记矿脉使用预先打包的 GT 矿石贴图，并合成对应岩层底：主世界石头/深板岩、下界地狱岩、末地末地石，其他模组星球/维度默认石头；以 ImageOverlay 渲染，并显式设置所属维度（JourneyMap API 要求）。VP 菜单可切换**贴图 / 纯色**。
-- **按层选择**：地表/白天地图显示石头层（或下界岩/末地石层），地下地图根据观察 Y 选择最接近的层，
-  避免深板岩矿脉盖住地表矿脉。
-- **不再绘制地表碎矿的额外标记圈**；地表碎矿材料只保留在悬停详情中。
-- **默认不显示常驻地图文字**，避免文字锚点造成的向下偏移和互相重叠；需要时可在 VP 面板中打开
-  “地图文字”，此时文字向上偏移。
-- 悬停显示矿脉名、层级、中心、Y、尺寸、密度、权重百分比、同原点其他层、地表矿、已开采近似值、
-  标记来源和枯竭状态。
-- 地图右侧有三个模式按钮：**矿物矿脉**、**流体矿脉**、**关闭覆盖层**。三者只能选中一个模式，
-  “关闭覆盖层”会同时关闭矿物和流体。`V`/VP 按钮打开的是文字、小地图、扫描设置面板。
-- 新标记的矿脉会**直接在小地图上更新**，不需要先打开大地图（小地图显示可在设置面板关闭）。
-- **右键已标记矿脉**可切换“已枯竭/未枯竭”，状态保存并同步。
-- **双击已标记矿脉或流体矿脉**可创建/移除 JourneyMap 路径点。路径点会先在矿脉中心附近寻找安全的
-  两格空气位置，找不到就扩大范围；再使用记录的地表，最后才放到建筑高度以上，不再使用地下矿脉中心。
-- **全屏地图搜索**：开启矿物或流体图层时，右下角显示搜索框。输入材料名（中文、拼音或英文，如
-  “铜”“黄铜”“tongkuang”“tk”“huangtong”“copper”）会高亮所有包含该材料的矿脉，其余矿脉变暗；
-  支持全拼（如 `tongkuang`）和半拼/首字母（如 `tk`）。清空搜索框恢复；右键地图或关闭大地图都不会
-  清空搜索，可以连续标记多个同类矿脉。搜索框只在大地图显示，但高亮/变暗结果会同步到小地图，
-  并在关闭大地图后保留。
-- 鼠标悬停矿脉时按 **Delete** 可直接切换枯竭状态，无需打开右键菜单。
-- VP 面板不再显示“最近矿脉”列表；请用 `B`、双击或 `/vpwaypoint` 创建路径点。
-- 已创建的图层会跨地图关闭/重开缓存，再次打开地图时显示明显更快。
-
-### 流体矿脉发现
-
-- 流体矿脉**不会自动读取/同步**，必须先发现：
-  - 使用 GTCEu 探矿仪的 **流体模式**（`gtceu:prospector.hv/luv`）右键；或
-  - 空手右键基岩，发现该基岩所在的流体区域。
-- 大地图近距离时，已发现区域会以完整 **8×8 区块网格**显示，每个区块单独显示产量；远距离和小地图会合并成一个区域方块以保证帧率。产量文字更小、只在近距离显示，并且**只在大地图显示**，小地图保持干净。
-- 已发现的区域会按维度持久化，并同步给玩家。
-- 地图右侧 **流体矿脉** 按钮会打开流体图层并关闭矿物图层；**矿物矿脉** 按钮反之；
-  **关闭覆盖层** 两者都关闭。两者不再同时显示，也不再抢覆盖层。
-
-### 开采统计
-
-玩家破坏 GTCEu 矿石时，模组按坐标和材料归因到矿脉并累加“已开采”近似值。深层变种按材料 ID
-归并到同一条矿脉。这个数字不是精确剩余矿石数。
-
-## 命令
-
-| 命令 | 说明 |
-|---|---|
-| `/vp` | 查看帮助 |
-| `/vp list [页码]` | 按距离列出当前维度矿脉（按原点合并） |
-| `/vp nearest` | 显示最近矿脉详情 |
-| `/vp scan [半径]` | 扫描周围矿脉网格并标记 |
-| `/vp stats` | 显示已记录矿脉数量 |
-| `/vp clear` | 清空当前维度记录（OP） |
-| `/vp clear all` | 清空所有维度记录（OP） |
-| `/vp reload` | 重新扫描玩家周围已加载区块（OP） |
-| `/vp debug` | 输出扫描和流体矿脉诊断（OP） |
-| `/vpwaypoint` | 为最近矿脉创建 JourneyMap 路径点 |
-
-## 按键
-
-| 默认按键 | 功能 |
-|---|---|
-| `V` | 打开 VP 控制面板 |
-| `B` | 在最近矿脉创建路径点 |
-| `Delete` | 切换鼠标悬停矿脉的枯竭状态 |
-
-## 安装
-
-1. 安装 Minecraft 1.20.1 + Forge 47.x。
-2. 把 `gtceu-1.20.1-*.jar`、`journeymap-1.20.1-*.jar` 放进 `mods`；
-   JourneyMap 6.x 还需 `common-networking-forge-1.20.1-*.jar`。
-3. 把 `visualvein-1.1.3.jar` 放进 **客户端和服务端** 的 `mods`。
-4. 启动游戏，进入世界后手动标记矿脉；打开 JourneyMap 查看。
-
-> 旧存档无需清空：自动扫描会补齐数据，未标记矿脉默认隐藏。
+- 只有手动标记的矿脉才会显示：地表岩石、矿石方块、GTCEu 探矿器；流体通过探矿器 FLUID 模式或空手点基岩发现。
+- 矿石标记使用 JM 版合成图标：宿主岩 + GTCEu 矿石 + 材质染色 + 枯竭红叉。
+- 右侧栏使用 Xaero 原生图标按钮：矿石、流体、隐藏、纹理/颜色、搜索。
+- 流体矿脉按 **16×16 区块整块染色**，区块之间有黄色分隔线；悬停显示单区块产量、区域产量、剩余作业数；可采集次数为 0 时不显示。
+- Xaero 原生右键菜单：创建路径点、安全传送、标记枯竭、标记未枯竭。
+- 安全传送由服务端寻找两格空气、下方为固体且非流体的安全落点。
+- 搜索支持中文、全拼（`tongkuang`）和首字母（`tk`），在地图和小地图同步高亮/变暗。
+- 内置英文 `en_us` 和简体中文 `zh_cn`。
 
 ## 构建
 
-ForgeGradle 6 + Gradle 8.1.1 + JDK 17：
-
 ```bash
-set JAVA_HOME=C:\Program Files\Java\jdk-17
-gradlew.bat build
+./gradlew build
 ```
 
-产物在 `build/libs/visualvein-1.0.2.jar`。`libs/` 中的 GTCEu/JourneyMap jar 仅用于编译，
-已被 `.gitignore` 排除，不会提交到仓库。克隆后需要自行放入对应版本的编译依赖。
+产物：`build/libs/visualvein-xaero-1.0.0-xaero.jar`
 
-## 实现说明
-
-- `VeinScanner`：区块加载时查询 `OreGenerator#generateMetadata`，按“原点区块 + 层级”保存；
-  自动扫描不标记，交互处理器负责手动标记。
-- `VeinGroup`：同一原点的多层矿脉合并显示；地表选石头层，地下按观察 Y 选择。
-- `VeinWorldData`：`SavedData` 持久化，保存标记、枯竭状态、地表碎矿材料和坐标。
-- `VeinInteractionHandler`：处理地表碎矿、完整矿石块、探矿仪三类标记，并发送聊天提示。
-- `VPJourneyMapPluginV2`：JourneyMap 6.x 图层、右键枯竭菜单、VP 菜单；`VPJourneyMapPlugin`
-  保留给 JourneyMap 5.x 基础图层。
-- `FluidDiscoveryData`：只保存玩家已发现的流体区域；`VPFluidOverlayV2` 只渲染已发现区域，
-  并与矿物图层通过地图按钮互斥切换。
-
-## 已知限制
-
-- 权重百分比不是精确方块数，“已开采”也是近似值。
-- 如果整合包用 KubeJS 运行时改矿脉定义，已记录数据需 `/vp clear` 后重新扫描。
-- 地表碎矿自动归属只在矿脉中心周围 8 格内进行；距离很远时仍可破坏/右键该碎矿手动匹配。
-- JourneyMap 5.x 仅保留基础图层；分层、右键状态、流体优先级和 VP 面板以 6.x 为主要目标。
-
-## 许可
-
-VisualVein 代码使用 **LGPL-3.0-only**。完整协议见 [LICENSE](LICENSE)，第三方声明见
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
-本模组是独立项目，不是 VisualProspecting、GTCEu 或 JourneyMap 的分支。GTCEu 矿石贴图和 Minecraft
-岩层贴图在运行时从已安装的游戏读取，不打包进 VisualVein 的 jar。`libs/` 中的 GTCEu 与 JourneyMap
-jar 仅用于本地编译，版权归各自作者所有。
-
-VisualVein: GTCEu 的源代码及本项目原创资源采用 **GNU Lesser General Public License v3.0 only（LGPL-3.0-only）** 授权，版权归 VisualVein contributors 所有。任何分发者，无论分发原版还是修改版，都必须：保留本项目的版权声明、SPDX 标识、完整 LGPL-3.0 许可证文本和 `THIRD_PARTY_NOTICES.md`，不得移除、修改或规避这些声明；按 LGPL-3.0 及所并入的 GPL-3.0 第 6 条，向接收者提供本模组对应的完整源代码，或提供符合该条规定的有效源代码获取方式；若分发修改版，必须清楚标注修改内容，并继续以 LGPL-3.0-only 授权该修改版，不得转为闭源或附加额外限制。LGPL 允许闭源整合包包含**未修改**的本模组，也允许仅通过公开 API 交互的独立闭源附属模组，但不允许将本模组本身或其修改版闭源分发。GTCEu、Minecraft、JourneyMap 的代码和资源不属于本项目的 LGPL 授权范围，仍受各自许可证约束。若违反上述条件，依据 LGPL-3.0 所并入的 GPL-3.0 第 8 条，您对本模组的使用和分发授权将自动终止，必须立即停止分发并删除相关副本；继续分发可能构成版权侵权。本项目按“现状”提供，不附带任何担保；本段为许可证摘要，法律效力以 [LICENSE](LICENSE) 中的完整 LGPL-3.0 文本为准。
+Xaero 两件套和 GTCEu 不随 jar 分发；GTCEu 纹理在运行时从已安装的模组读取。

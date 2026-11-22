@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.0-xaero
+
+First JourneyMap-free Xaero edition.
+
+- Rewritten client map layer for Xaero's World Map 1.47.0 and Minimap 26.6.0.
+- Ore markers with JourneyMap-style composed host-rock/ore texture, texture/color modes and depletion cross.
+- Fluid veins drawn as full 16x16 chunk tints with yellow chunk separators; exhausted regions are hidden.
+- Native Xaero right-click options: Create Waypoint, Safe Teleport, Mark Depleted, Mark Active.
+- Safe server-side teleport to a two-block air column with a solid floor.
+- Xaero-native sidebar buttons for Ore / Fluid / Hide / Texture / Search.
+- Inline search field that toggles left of the search icon, with Chinese, full pinyin and initials support.
+- Minimap performance: one fluid region marker per region and cache-version-based rebuilds.
+- English (`en_us`) and Simplified Chinese (`zh_cn`) language files.
+
 ## 1.1.3 — hotfix (1.1.0-hotfix-03)
 
 - Waypoint placement now searches for a safe two-block air column near the vein center, expanding

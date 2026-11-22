@@ -38,19 +38,17 @@ public final class ClientSetup {
         ClientHooks.scanNearby = () -> com.visualvein.network.VPNetwork.sendToServer(
                 new com.visualvein.network.ScanRequestPacket(8));
 
-        // JourneyMap discovers @ClientPlugin (5.x) or @JourneyMapPlugin (6.x) itself. We must not
-        // classload either plugin here because the other API version may not be present.
-        if (!ModList.get().isLoaded("journeymap")) {
-            ClientHooks.toggleOverlay = ClientSetup::noJourneyMap;
-            ClientHooks.createWaypoint = ClientSetup::noJourneyMap;
-            ClientHooks.toggleHoveredStatus = ClientSetup::noJourneyMap;
+        if (!ModList.get().isLoaded("xaeroworldmap") || !ModList.get().isLoaded("xaerominimap")) {
+            ClientHooks.toggleOverlay = ClientSetup::noXaero;
+            ClientHooks.createWaypoint = ClientSetup::noXaero;
+            ClientHooks.toggleHoveredStatus = ClientSetup::noXaero;
         }
     }
 
-    private static void noJourneyMap() {
+    private static void noXaero() {
         if (Minecraft.getInstance().player != null) {
             Minecraft.getInstance().player.displayClientMessage(
-                    Component.translatable("vp.msg.no_journeymap"), false);
+                    Component.translatable("vp.msg.no_xaero"), false);
         }
     }
 }

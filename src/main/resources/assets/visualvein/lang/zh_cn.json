@@ -3,7 +3,6 @@
   "key.visualvein.toggle_overlay": "打开 VP 菜单",
   "key.visualvein.create_waypoint": "在最近矿脉创建路径点",
   "key.visualvein.toggle_status": "切换悬停矿脉状态（Delete）",
-
   "vp.menu.title": "VisualVein: GTCEu",
   "vp.menu.overlay": "矿脉图层",
   "vp.search.hint": "搜索矿石/流体（支持拼音）...",
@@ -19,14 +18,13 @@
   "vp.menu.on": "开",
   "vp.menu.off": "关",
   "vp.menu.nearest": "最近矿脉：",
-  "vp.button.ore": "矿物矿脉",
-  "vp.button.fluid": "流体矿脉",
+  "vp.button.ore": "矿石",
+  "vp.button.fluid": "流体",
   "vp.button.none": "关闭覆盖层",
   "vp.menu.mark_depleted": "标记为已枯竭",
   "vp.menu.mark_active": "标记为未枯竭",
   "vp.menu.create_waypoint": "创建矿脉路径点",
   "vp.menu.remove_waypoint": "移除矿脉路径点",
-
   "vp.tooltip.layer_y": "层级: %s   中心 Y: %s",
   "vp.tooltip.center": "中心: %s, %s",
   "vp.tooltip.size_density": "尺寸参数: %s   密度: %s%%",
@@ -42,7 +40,6 @@
   "vp.tooltip.depleted": "已枯竭",
   "vp.tooltip.active": "未枯竭",
   "vp.label.depleted": "[枯竭]",
-
   "vp.fluid.tooltip.zoom_for_chunks": "放大后显示每个区块的产量",
   "vp.fluid.tooltip.chunk": "区块: %s, %s",
   "vp.fluid.tooltip.chunk_yield": "区块产量: %s L/t",
@@ -53,8 +50,12 @@
   "vp.fluid.tooltip.status": "状态: %s",
   "vp.fluid.status.depleted": "已枯竭",
   "vp.fluid.status.active": "可开采",
-
-  "vp.msg.no_journeymap": "未安装旅行地图（JourneyMap），无法显示矿脉图层。",
+  "vp.button.hide": "隐藏",
+  "vp.button.style": "纹理/颜色",
+  "vp.search.title": "VisualVein 搜索",
+  "vp.search.open": "搜索矿脉...",
+  "vp.search.help": "输入矿脉、矿石、材料或流体名；支持拼音和首字母。",
+  "vp.msg.no_xaero": "矿物图层需要同时安装 Xaero's World Map 和 Xaero's Minimap。",
   "vp.msg.overlay_on": "已开启矿脉图层",
   "vp.msg.overlay_off": "已关闭矿脉图层",
   "vp.msg.fluid_on": "已开启流体矿脉图层",
@@ -74,17 +75,14 @@
   "vp.msg.prospector_none": "探矿仪范围内没有新的可标记矿脉",
   "vp.msg.depleted": "已将矿脉标记为枯竭",
   "vp.msg.restored": "已将矿脉标记为可开采",
-
   "vp.layer.stone": "石头",
   "vp.layer.deepslate": "深板岩",
   "vp.layer.netherrack": "下界岩",
   "vp.layer.endstone": "末地石",
   "vp.layer.unknown": "未知",
-
   "vp.dimension.overworld": "主世界",
   "vp.dimension.the_nether": "下界",
   "vp.dimension.the_end": "末地",
-
   "vp.command.help.header": "VisualVein: GTCEu（1.1.0-hotfix-03）",
   "vp.command.help.list": "/vp list [页码] - 列出当前维度已发现的矿脉",
   "vp.command.help.nearest": "/vp nearest - 查看最近矿脉的详细信息",
@@ -93,7 +91,6 @@
   "vp.command.help.clear": "/vp clear [all] - 删除记录（仅管理员）",
   "vp.command.help.reload": "/vp reload - 重新扫描玩家周围已加载的区块（仅管理员）",
   "vp.command.help.debug": "/vp debug - GTCEu 矿脉与扫描诊断（仅管理员）",
-
   "vp.command.list.header": "%s - 第 %s/%s 页，共 %s 条矿脉",
   "vp.command.list.extra_layers": "  +%s 层",
   "vp.command.no_data": "当前维度还没有发现任何矿脉。",
@@ -105,5 +102,9 @@
   "vp.command.clear": "已删除当前维度的 %s 条矿脉记录。",
   "vp.command.clear_all": "已删除所有维度的 %s 条矿脉记录。",
   "vp.command.reload": "已将 %s 个区块加入重新扫描队列。",
-  "vp.command.scan": "扫描完成：新增 %s 条矿脉（%s 区块范围）。"
+  "vp.command.scan": "扫描完成：新增 %s 条矿脉（%s 区块范围）。",
+  "vp.button.search": "搜索矿脉",
+  "vp.menu.teleport": "安全传送到矿脉",
+  "vp.msg.teleport_unsafe": "该矿脉附近没有找到安全落点。",
+  "vp.msg.teleported": "已传送到 %s, %s, %s"
 }

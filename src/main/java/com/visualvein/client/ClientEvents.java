@@ -31,6 +31,10 @@ public final class ClientEvents {
         while (ClientSetup.TOGGLE_STATUS.consumeClick()) {
             ClientHooks.toggleHoveredStatus.run();
         }
+        if (net.minecraftforge.fml.ModList.get().isLoaded("xaeroworldmap")
+                && net.minecraftforge.fml.ModList.get().isLoaded("xaerominimap")) {
+            com.visualvein.client.xaero.XaeroIntegration.tick();
+        }
     }
 
     @SubscribeEvent

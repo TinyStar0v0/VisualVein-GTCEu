@@ -31,10 +31,15 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "journeymap"
-mandatory = false
-# JourneyMap 5.x reports "5.10.3"; JourneyMap 6.x reports "1.20.1-6.0.7".
-# This range accepts both forms while still excluding pre-5.9 API builds.
-versionRange = "[1.20.1-5.9.0,)"
+modId = "xaeroworldmap"
+mandatory = true
+versionRange = "${xaero_world_map_range}"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "xaerominimap"
+mandatory = true
+versionRange = "${xaero_minimap_range}"
 ordering = "AFTER"
 side = "CLIENT"

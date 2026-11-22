@@ -40,6 +40,8 @@ public final class VPNetwork {
                 SetVeinStatusPacket::encode, SetVeinStatusPacket::decode, SetVeinStatusPacket::handle);
         CHANNEL.registerMessage(id++, FluidSyncPacket.class,
                 FluidSyncPacket::encode, FluidSyncPacket::decode, FluidSyncPacket::handle);
+        CHANNEL.registerMessage(id++, TeleportToVeinPacket.class,
+                TeleportToVeinPacket::encode, TeleportToVeinPacket::decode, TeleportToVeinPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {
